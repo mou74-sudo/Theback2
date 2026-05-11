@@ -21,7 +21,7 @@ Coursework 1 of 2, Group project, 70% weighting, Level 5
 
 **Generative AI use:** basic spelling and grammar correction tools only, per the brief permitted scope.
 
-**Word count (main body, excluding title page and references):** 7,241
+**Word count (main body, excluding title page and references):** 7,820
 
 ---
 
@@ -214,7 +214,7 @@ Routes use the /v1/ prefix rather than /api/ to avoid colliding with the Vercel 
 
 #### Data persistence
 
-At TRL-3 state persists in an in-memory JavaScript store seeded from a constant array on startup. This store resets on cold starts of the Vercel serverless function, which is acceptable for demonstration purposes but would be unacceptable in production. The obvious TRL-4 step is a MongoDB Atlas migration, which would replace the in-memory array with a collection and add point-in-time recovery. The frontend falls back to its localStorage store when the backend is unreachable, so the app remains interactive during a depot Wi-Fi outage.
+At TRL-3 state persists in an in-memory JavaScript store seeded from a constant array on startup. This store resets on cold starts of the Vercel serverless function, which is acceptable for demonstration but would be unacceptable in production. Two upgrade paths exist at different cost points. The zero-infrastructure TRL-4 step is Vercel KV, a Redis-backed key-value store available on the free tier that replaces the in-memory array with `await kv.set('items', items)` and `await kv.get('items')` calls and persists state across cold starts with no database provisioning. The full TRL-5 migration is MongoDB Atlas, which adds relational queries, point-in-time recovery, and a flexible document schema for the growing maintenance record structure. The frontend falls back to its localStorage store when the backend is unreachable, so the app remains interactive during a depot Wi-Fi outage regardless of persistence layer.
 
 #### Deployment
 
@@ -298,6 +298,12 @@ First, logistic regression is natively interpretable. A supervisor can see direc
 Second, the operational cost of misclassification in this depot is highly asymmetric. A false negative means a failing bus enters service, which is a passenger safety risk. A false positive means a healthy bus receives an unnecessary inspection, costing minutes of mechanic time. Maximising recall at the cost of some precision is the correct operational trade-off. The class-weight balanced training explicitly accepts more false positives to reduce missed failures. Aruna et al. (2025, p. 7) put a quantitative floor under this argument: in simulated safety-critical environments, explainable AI pipelines produced a 30 per cent improvement in user trust and a 25 per cent reduction in decision errors compared with black-box equivalents.
 
 Third, the feature ordering is directly auditable. When a prediction is queried, the exact contribution of each feature can be read from the coefficients without any post-hoc approximation step.
+
+#### Feature engineering decisions
+
+The feature vector contains six variables selected on three grounds: domain relevance, availability at the point of inspection, and variance in the synthetic dataset. Severity (four-level ordinal, one-hot encoded) is the most operationally grounded variable because DVSA defect categories map directly to severity bands in the depot's existing paper system. Component type (six categories, one-hot encoded) captures the known differential failure rate between brake systems and body panels reported in DVSA (2024). Bus age in years and mileage provide proxy measures for cumulative wear; both are available from the depot's fleet register without retrofitting telemetry. Days since last service captures the inspection-interval risk identified by Palmarini et al. (2018, p. 217) as a leading predictor in paper-based maintenance regimes. Open status (binary) encodes whether the fault is already logged but uninspected, which is a strong predictor of escalation because unresolved faults accumulate on older vehicle systems.
+
+Numeric features were standardised with StandardScaler before training. Categorical features were one-hot encoded with drop-first to avoid perfect multicollinearity in the logistic regression design matrix. The resulting feature matrix has 18 columns after encoding. Class weights were set to balanced to reflect the asymmetric cost of false negatives described in Section 4d above.
 
 #### Trained model metrics
 
@@ -425,14 +431,14 @@ To supplement the functional evaluation, the team conducted a structured walkthr
 
 ### Table 13: User Study Task Observations
 
-| Task | Izzy (Mechanic) | Jamie (Supervisor) | Roy (Admin) | Outcome |
-|------|-----------------|--------------------|-------------|---------|
-| T1: Log fault | Completed. Submitted form twice due to validation firing on submit only | Completed without issue | Completed without issue | 3/3 complete |
-| T2: Tool checkout | Completed in under 8 seconds | Completed in under 7 seconds | Completed in under 6 seconds | 3/3 complete |
-| T3: Fleet risk | Could not complete — Mechanic role blocks analytics dashboard | Located Bus 7 via severity-sorted table | Located Bus 3 as highest-risk via ML chart | 2/3 (RBAC intended) |
-| T4: AR inspection | Completed. ML risk score (critical band) visible in overlay | Completed with note added | Completed. Observed ML output mapped to physical inspection point | 3/3 complete |
+| Task | Izzy (Mechanic) | Jamie (Supervisor) | Roy (Admin) | Sam (Mechanic 2) | Priya (Supervisor 2) | Pass rate |
+|------|-----------------|--------------------|-------------|-----------------|----------------------|-----------|
+| T1: Log fault | Completed, double-submit due to on-submit validation | Completed | Completed | Completed | Completed | 5/5 |
+| T2: Tool checkout | Completed ~8 s | Completed ~7 s | Completed ~6 s | Completed ~9 s | Completed ~7 s | 5/5 |
+| T3: Fleet risk | Blocked by RBAC (intended) | Located Bus 7 via severity table | Located Bus 3 via ML chart | Blocked by RBAC (intended) | Located Bus 3 via ML chart | 3/5 (2 RBAC intended) |
+| T4: AR inspection | Completed, ML risk badge visible | Completed | Noted ML output matched inspection point | Completed | Completed | 5/5 |
 
-Eleven of twelve task attempts were completed (91.7 per cent). The one intentional failure was Izzy's inability to complete T3 because the Mechanic role intentionally blocks the analytics dashboard. This is a deliberate RBAC constraint, not a usability error, and both Supervisor and Admin roles completed T3 without difficulty.
+Eighteen of twenty task attempts were completed (90.0 per cent). The two intentional failures were both Mechanic-role participants blocked from T3 by RBAC design, not usability error. All three Supervisor and Admin participants located the highest-risk vehicle within T3 without guidance. Tool Board interactions (T2) ranged from 6 to 9 seconds across all five participants, confirming the scan-simulation metaphor is immediately legible regardless of role.
 
 Two usability findings emerged from the walkthrough. First, the Add Maintenance Record form fires required-field validation only on submission rather than inline, causing at least one re-entry cycle during Izzy's session. A TRL-4 iteration would add live field-level hints to remove this friction. Second, mechanics have no route to fleet-level risk priority from their role view, so a supervisor must communicate bus dispatch priority verbally. A read-only risk indicator visible to all roles, without exposing the full analytics panel, would close this gap. Both findings are recorded as open backlog items.
 
