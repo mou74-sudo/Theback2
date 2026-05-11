@@ -17,8 +17,13 @@
 
       <form id="login-form" class="login-form">
         <label>
-          Display name
-          <input name="name" type="text" placeholder="Example: Alex Mechanic" required />
+          Username
+          <input name="name" type="text" placeholder="alex.mechanic" required autocomplete="username" />
+        </label>
+
+        <label>
+          Password
+          <input name="password" type="password" placeholder="password123" required autocomplete="current-password" />
         </label>
 
         <label>
@@ -34,10 +39,10 @@
       </form>
 
       <div class="role-help">
-        <h2>Role guide</h2>
-        <p><strong>Mechanic:</strong> inspect faults and tools.</p>
-        <p><strong>Supervisor:</strong> inspect records and review dashboard information.</p>
-        <p><strong>Admin:</strong> access all controls, including resetting demo data.</p>
+        <h2>Demo accounts (password: password123)</h2>
+        <p><strong>alex.mechanic:</strong> inspect faults and tools.</p>
+        <p><strong>sam.supervisor:</strong> inspect records and review the dashboard.</p>
+        <p><strong>jay.admin:</strong> access all controls including data reset.</p>
       </div>
     </div>
   </section>

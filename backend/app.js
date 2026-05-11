@@ -1,10 +1,20 @@
 const express = require("express");
 const cors    = require("cors");
 const jwt     = require("jsonwebtoken");
+const bcrypt  = require("bcryptjs");
 
 const app = express();
 
 const JWT_SECRET = process.env.JWT_SECRET || "techwork-depot-secret-trl3";
+
+// Seed users with bcrypt-hashed passwords.
+// All seed accounts use the demo password "password123" hashed with bcrypt cost 10.
+// A TRL-6 deployment swaps this for argon2id stored in MongoDB.
+const USERS = [
+  { name: "alex.mechanic",   role: "mechanic",   hash: "$2b$10$PU71b.6GoqlpljrvXdBi2.008buqndVOyHLT9taeTt3YHy0z6q83u" },
+  { name: "sam.supervisor",  role: "supervisor", hash: "$2b$10$PU71b.6GoqlpljrvXdBi2.008buqndVOyHLT9taeTt3YHy0z6q83u" },
+  { name: "jay.admin",       role: "admin",      hash: "$2b$10$PU71b.6GoqlpljrvXdBi2.008buqndVOyHLT9taeTt3YHy0z6q83u" }
+];
 
 app.use(cors({ origin: "*" }));
 app.use(express.json());
@@ -52,12 +62,19 @@ app.get("/health", (req, res) => {
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 app.post("/auth/login", (req, res) => {
-  const { name, role } = req.body;
+  const { name, password, role } = req.body;
   const validRoles = ["mechanic", "supervisor", "admin"];
   if (!name || name.trim().length < 2) return res.status(400).json({ error: "Name must be at least 2 characters." });
+  if (!password) return res.status(400).json({ error: "Password is required." });
   if (!validRoles.includes(role)) return res.status(400).json({ error: "Invalid role." });
 
-  const user  = { name: name.trim(), role, loggedInAt: new Date().toLocaleString() };
+  const record = USERS.find(u => u.name === name.trim() && u.role === role);
+  if (!record) return res.status(401).json({ error: "Invalid credentials." });
+
+  const matches = bcrypt.compareSync(password, record.hash);
+  if (!matches) return res.status(401).json({ error: "Invalid credentials." });
+
+  const user  = { name: record.name, role: record.role, loggedInAt: new Date().toLocaleString() };
   const token = jwt.sign(user, JWT_SECRET, { expiresIn: "8h", algorithm: "HS256" });
   res.json({ token, user });
 });

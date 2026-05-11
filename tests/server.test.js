@@ -52,7 +52,7 @@ describe("Health endpoint", () => {
 
 describe("Auth", () => {
   test("POST /auth/login returns a JWT for valid credentials", async () => {
-    const res = await request("POST", "/auth/login", { name: "Test Admin", role: "admin" });
+    const res = await request("POST", "/auth/login", { name: "jay.admin", password: "password123", role: "admin" });
     expect(res.status).toBe(200);
     expect(typeof res.body.token).toBe("string");
     expect(res.body.user.role).toBe("admin");
@@ -60,19 +60,29 @@ describe("Auth", () => {
   });
 
   test("POST /auth/login returns a JWT for mechanic role", async () => {
-    const res = await request("POST", "/auth/login", { name: "Test Mechanic", role: "mechanic" });
+    const res = await request("POST", "/auth/login", { name: "alex.mechanic", password: "password123", role: "mechanic" });
     expect(res.status).toBe(200);
     mechanicToken = res.body.token;
   });
 
   test("rejects invalid role", async () => {
-    const res = await request("POST", "/auth/login", { name: "Bad", role: "hacker" });
+    const res = await request("POST", "/auth/login", { name: "Bad", password: "x", role: "hacker" });
     expect(res.status).toBe(400);
   });
 
   test("rejects name shorter than 2 chars", async () => {
-    const res = await request("POST", "/auth/login", { name: "A", role: "mechanic" });
+    const res = await request("POST", "/auth/login", { name: "A", password: "x", role: "mechanic" });
     expect(res.status).toBe(400);
+  });
+
+  test("rejects wrong password with 401", async () => {
+    const res = await request("POST", "/auth/login", { name: "alex.mechanic", password: "wrongpassword", role: "mechanic" });
+    expect(res.status).toBe(401);
+  });
+
+  test("rejects unknown username with 401", async () => {
+    const res = await request("POST", "/auth/login", { name: "no.such.user", password: "password123", role: "mechanic" });
+    expect(res.status).toBe(401);
   });
 });
 

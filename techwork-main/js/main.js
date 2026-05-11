@@ -195,15 +195,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     event.preventDefault();
 
     const formData = new FormData(event.target);
-    const name = formData.get("name").trim();
-    const role = formData.get("role");
+    const name     = formData.get("name").trim();
+    const password = formData.get("password");
+    const role     = formData.get("role");
 
     if (name.length < 2) {
-      alert("Please enter a display name.");
+      alert("Please enter a username.");
       return;
     }
 
-    await loginUser(name, role);
+    try {
+      await loginUser(name, password, role);
+    } catch (err) {
+      showMessage(err.message || "Login failed.", "error");
+      return;
+    }
     updateAuthUI();
     await loadPage();
     initToolCheck();

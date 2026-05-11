@@ -65,14 +65,14 @@ function saveStoredItems(items) {
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-export async function loginUser(name, role) {
+export async function loginUser(name, password, role) {
   await backendReady;
 
   if (useBackend) {
     const res = await fetch(`${BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, role })
+      body: JSON.stringify({ name, password, role })
     });
     if (!res.ok) throw new Error((await res.json()).error || "Login failed.");
     const { token, user } = await res.json();
@@ -81,7 +81,9 @@ export async function loginUser(name, role) {
     return user;
   }
 
+  // Local fallback: accept any non-empty password. The backend enforces bcrypt.
   await wait();
+  if (!password) throw new Error("Password is required.");
   const user = { name, role, loggedInAt: new Date().toLocaleString() };
   localStorage.setItem(USER_KEY, JSON.stringify(user));
   return copy(user);
