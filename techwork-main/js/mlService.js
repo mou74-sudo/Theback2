@@ -76,6 +76,9 @@ function sigmoid(z) {
 }
 
 // Local inference using trained coefficients (mirrors server.js /predict logic).
+// TRL-3 stub: bus_age (10 yrs), mileage (40×10k km), and days_since_service (60)
+// are hardcoded depot-average defaults; a TRL-6 deployment reads these from the
+// vehicle maintenance database.
 function inferLocally(record) {
   const features = [
     SEVERITY_MAP[record.severity] ?? 1,
@@ -124,7 +127,9 @@ export async function predictMaintenance(record) {
 /**
  * PSI drift simulator.
  * Real PSI compares expected vs observed feature distributions.
- * Here we return a plausible slowly-varying value for the demo.
+ * TRL-3 stub: returns a plausible slowly-varying value for the demo.
+ * A TRL-6 deployment computes PSI from a rolling window of live prediction
+ * requests against the training distribution using scikit-learn utilities.
  */
 export function getDriftStatus() {
   const psi = 0.06 + Math.random() * 0.07;

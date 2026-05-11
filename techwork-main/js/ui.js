@@ -2,6 +2,15 @@ function capitalise(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function esc(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function renderWorkflow(item) {
   const hasNote = item.inspectionNotes.length > 0;
   const isConfirmed = item.status === "inspected" || item.status === "returned";
@@ -75,19 +84,19 @@ export function renderItems(items) {
   itemList.innerHTML = items.map(item => `
     <article class="item-card">
       <div>
-        <h3>${item.title}</h3>
-        <p class="item-meta">${item.location}</p>
+        <h3>${esc(item.title)}</h3>
+        <p class="item-meta">${esc(item.location)}</p>
       </div>
 
       <div class="badge-row">
-        <span class="badge ${item.type}">${item.type}</span>
-        <span class="badge ${item.severity}">${item.severity}</span>
-        <span class="badge ${item.status}">${item.status}</span>
+        <span class="badge ${esc(item.type)}">${esc(item.type)}</span>
+        <span class="badge ${esc(item.severity)}">${esc(item.severity)}</span>
+        <span class="badge ${esc(item.status)}">${esc(item.status)}</span>
       </div>
 
-      <p>${item.notes}</p>
+      <p>${esc(item.notes)}</p>
 
-      <button class="primary-button inspect-button" data-id="${item.id}">
+      <button class="primary-button inspect-button" data-id="${esc(item.id)}">
         Inspect
       </button>
     </article>
@@ -107,23 +116,23 @@ export function renderDetails(item) {
 
   const noteHistory = item.inspectionNotes.length
     ? item.inspectionNotes.map(note => `
-        <p><strong>${note.createdAt}</strong><br>${note.text}</p>
+        <p><strong>${esc(note.createdAt)}</strong><br>${esc(note.text)}</p>
       `).join("")
     : `<p class="muted">No inspection notes yet.</p>`;
 
   detailsPanel.innerHTML = `
-    <h2>${item.title}</h2>
-    <p class="item-meta">${item.location}</p>
+    <h2>${esc(item.title)}</h2>
+    <p class="item-meta">${esc(item.location)}</p>
 
     <div class="badge-row">
-      <span class="badge ${item.type}">${capitalise(item.type)}</span>
-      <span class="badge ${item.severity}">${capitalise(item.severity)}</span>
-      <span class="badge ${item.status}">${capitalise(item.status)}</span>
+      <span class="badge ${esc(item.type)}">${esc(capitalise(item.type))}</span>
+      <span class="badge ${esc(item.severity)}">${esc(capitalise(item.severity))}</span>
+      <span class="badge ${esc(item.status)}">${esc(capitalise(item.status))}</span>
     </div>
 
     ${renderWorkflow(item)}
 
-    <p>${item.notes}</p>
+    <p>${esc(item.notes)}</p>
 
     <label for="inspection-note"><strong>Inspection note</strong></label>
     <textarea id="inspection-note" placeholder="Example: Checked the brake area and confirmed visible wear."></textarea>

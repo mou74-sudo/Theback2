@@ -41,7 +41,7 @@ The research question this project addresses is: can a browser-based AR overlay,
 
 ### 1.1 Contributions
 
-This report makes three concrete contributions. First, it integrates a browser-based AR maintenance overlay with an interpretable predictive maintenance pipeline in a single auditable workflow, addressing the integration gap Alam et al. (2025, p. 6) identify as under-explored in current XR maintenance research. Second, it operationalises Rudin's (2019, p. 208) interpretability argument in a depot context by selecting a logistic regression model with documented per-prediction SHAP explanations, rather than defaulting to a black-box ensemble. Third, it ships a working Population Stability Index drift monitor that closes the lifecycle-monitoring gap Myakala et al. (2025) identify in current predictive maintenance deployments. Each contribution is located explicitly in the artefact so the marker can find its evidence.
+This report makes three concrete contributions. First, it integrates a browser-based AR maintenance overlay with an interpretable predictive maintenance pipeline in a single auditable workflow, addressing the integration gap Alam et al. (2025, p. 6) identify as under-explored in current XR maintenance research. Second, it operationalises Rudin's (2019, p. 208) interpretability argument in a depot context by selecting a logistic regression model with documented global SHAP feature importance, rather than defaulting to a black-box ensemble. Third, it ships a working Population Stability Index drift monitor that closes the lifecycle-monitoring gap Myakala et al. (2025) identify in current predictive maintenance deployments. Each contribution is located explicitly in the artefact so the marker can find its evidence.
 
 ### 1.2 Aims and Objectives
 
@@ -301,7 +301,7 @@ Third, the feature ordering is directly auditable. When a prediction is queried,
 
 #### Feature engineering decisions
 
-The feature vector contains six variables selected on three grounds: domain relevance, availability at the point of inspection, and variance in the synthetic dataset. Severity (four-level ordinal, one-hot encoded) is the most operationally grounded variable because DVSA defect categories map directly to severity bands in the depot's existing paper system. Component type (six categories, one-hot encoded) captures the known differential failure rate between brake systems and body panels reported in DVSA (2024). Bus age in years and mileage provide proxy measures for cumulative wear; both are available from the depot's fleet register without retrofitting telemetry. Days since last service captures the inspection-interval risk identified by Palmarini et al. (2018, p. 217) as a leading predictor in paper-based maintenance regimes. Open status (binary) encodes whether the fault is already logged but uninspected, which is a strong predictor of escalation because unresolved faults accumulate on older vehicle systems.
+The feature vector contains six variables selected on three grounds: domain relevance, availability at the point of inspection, and variance in the synthetic dataset. Severity (four-level ordinal, one-hot encoded) is the most operationally grounded variable because DVSA defect categories map directly to severity bands in the depot's existing paper system. Component type (six categories, one-hot encoded) captures the known differential failure rate between brake systems and body panels reported in DVSA (2024). Bus age in years and mileage provide proxy measures for cumulative wear; both are available from the depot's fleet register without retrofitting telemetry. At TRL-3 these values are set to depot-average defaults (10 years, 40 x 10,000 km) because the prototype does not connect to a live fleet register; a TRL-4 deployment would read actual values per vehicle. Days since last service captures the inspection-interval risk identified by Palmarini et al. (2018, p. 217) as a leading predictor in paper-based maintenance regimes. Open status (binary) encodes whether the fault is already logged but uninspected, which is a strong predictor of escalation because unresolved faults accumulate on older vehicle systems.
 
 Numeric features were standardised with StandardScaler before training. Categorical features were one-hot encoded with drop-first to avoid perfect multicollinearity in the logistic regression design matrix. The resulting feature matrix has 18 columns after encoding. Class weights were set to balanced to reflect the asymmetric cost of false negatives described in Section 4d above.
 
@@ -334,7 +334,7 @@ The false negative rate is 16.5 per cent. This is the most operationally costly 
 
 #### SHAP explainability
 
-SHAP produces per-prediction explanations via a LinearExplainer applied to the test set. The mean absolute SHAP values per feature are visualised on the analytics dashboard. Severity is the dominant feature (mean SHAP value 0.42), with open status as a strong secondary signal (0.28). This ranking aligns with Gawde et al. (2024, p. 9), who report severity and operational status as the leading predictors across rotating-machinery datasets.
+SHAP global feature importance is computed via a LinearExplainer applied to the test set. The mean absolute SHAP values per feature are visualised on the analytics dashboard. Severity is the dominant feature (mean SHAP value 0.42), with open status as a strong secondary signal (0.28). This ranking aligns with Gawde et al. (2024, p. 9), who report severity and operational status as the leading predictors across rotating-machinery datasets.
 
 #### Drift monitoring
 
@@ -368,7 +368,7 @@ This five-step sequence exercises all four brief tasks in a single continuous us
 
 ## 5. Evaluation
 
-Evaluation of a TRL-3 artefact is necessarily two-sided. We must ask whether the prototype does what the requirements specified, and whether those requirements were correctly framed against the depot's operating reality. Following Rudin (2019, p. 207), shortfalls are reported in the same register as successes: an honest gap statement is more useful at TRL-3 than an inflated performance claim.
+Evaluating a TRL-3 artefact requires two distinct lenses. The first asks whether the prototype does what the requirements specified. The second asks whether those requirements were correctly framed against the depot's operating reality. Following Rudin (2019, p. 207), we report shortfalls in the same register as successes: an honest gap statement delivers more value at TRL-3 than an inflated performance claim.
 
 ### 5.1 Against the Functional Requirements
 
@@ -384,7 +384,7 @@ Evaluation of a TRL-3 artefact is necessarily two-sided. We must ask whether the
 | FR6 Analytics dashboard     | Met     | dashboard.html, Chart.js KPIs and charts, supervisor and admin only  |
 | FR7 RBAC                    | Met     | Three roles enforced at API layer, role-claim verified on every route|
 
-Six of seven functional requirements are fully met. The FR2 shortfall is a platform-level constraint rather than an implementation oversight. WebXR depth-sensing remains experimental on Android and is absent on iOS Safari (Salii et al., 2025, s3). For mechanics, this means AR labels render on top of physical structures they are behind, breaking the spatial illusion and potentially confusing users during detailed inspections, a recurring obstacle for industrial AR identified by Mojidra et al. (2024) and Alam et al. (2025, p. 3). The documented TRL-6 path replaces fiducial markers with QR asset-tag anchors paired with ARCore or ARKit depth APIs that provide per-pixel occlusion maps.
+The prototype fully meets six of seven functional requirements. The FR2 shortfall reflects a platform-level constraint rather than an implementation oversight. WebXR depth-sensing remains experimental on Android and absent on iOS Safari (Salii et al., 2025, s3). For mechanics, this means AR labels render on top of physical structures they are behind, breaking the spatial illusion and potentially confusing users during detailed inspections -- a recurring obstacle for industrial AR that Mojidra et al. (2024) and Alam et al. (2025, p. 3) both document. The TRL-6 path documented in Section 4b replaces fiducial markers with QR asset-tag anchors paired with ARCore or ARKit depth APIs that supply per-pixel occlusion maps.
 
 ### 5.2 Against the Non-Functional Requirements
 
@@ -419,13 +419,13 @@ Table 12 below positions the prototype against the four under-explored areas Ala
 | Field-deployable security for XR          | Partial          | JWT, RBAC, TLS 1.3 in place. MFA and argon2id deferred to TRL-6        |
 | Drift-aware ML lifecycle                  | Acknowledged     | PSI monitor in /health. AutoDrift retraining cadence named as TRL-6 work|
 
-Integrating the AR frontend directly with the predictive backend fills the first gap Alam et al. identify. The per-prediction SHAP contribution available at the overlay layer, rather than only on a post-hoc dashboard, addresses the interpretability-at-decision-time gap noted by Gawde et al. (2024, p. 9). Two pivots during development shaped the final design. An initial assumption that a complex ensemble model was necessary was overturned when testing showed the logistic regression was more competitive on the recall metric that matters operationally (Cummins et al., 2024, s5). A plan to use WebXR markerless tracking was replaced with AR.js fiducial markers after early tests revealed tracking drift under workshop fluorescent lighting, matching the experience Mojidra et al. (2024) report for civil infrastructure inspection.
+Integrating the AR frontend directly with the predictive backend fills the first gap Alam et al. identify. Surfacing global SHAP feature importance on the analytics dashboard, rather than burying it in a post-hoc notebook, addresses the interpretability-at-decision-time gap noted by Gawde et al. (2024, p. 9). Two pivots during development shaped the final design. An initial assumption that a complex ensemble model was necessary was overturned when testing showed the logistic regression was more competitive on the recall metric that matters operationally (Cummins et al., 2024, s5). A plan to use WebXR markerless tracking was replaced with AR.js fiducial markers after early tests revealed tracking drift under workshop fluorescent lighting, matching the experience Mojidra et al. (2024) report for civil infrastructure inspection.
 
 ### 5.4 Sustainability and Ethics
 
 ILO1 names sustainable and ethical project conduct as a learning outcome, and three concrete dimensions apply here. First, mechanic names and timestamps captured through the audit log are personal data under UK GDPR. The system processes them on the legitimate interest basis under Article 6(1)(f). A TRL-6 deployment would require a formal data-protection impact assessment and a privacy notice informing mechanics that their inspection actions are logged for safety audit purposes. Second, the audit-log surveillance of named mechanic actions becomes a labour-relations risk if repurposed for performance management. The documented retention policy restricts access to safety and security audits only, and the admin-only visibility of the anomaly panel enforces this access boundary technically. Third, the synthetic training data avoids any real personal data so the prototype itself carries no immediate ethics burden, but the hybrid-data revalidation planned for TRL-4 would bring real fault records into scope and would require ethics committee review at that point.
 
-### 5.5 Empirical User-Study Observations
+### 5.5 Structured Expert Walkthrough
 
 To supplement the functional evaluation, the team conducted a structured walkthrough with three simulated participants representing the prototype's target roles: Izzy (Mechanic), Jamie (Supervisor), and Roy (Admin). Each participant attempted four tasks. T1: log a new brake fault record. T2: scan a tool checkout on the Tool Board. T3: identify the highest-priority bus risk on the analytics dashboard. T4: confirm an AR inspection with a maintenance note.
 

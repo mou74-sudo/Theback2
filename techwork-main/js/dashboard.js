@@ -5,7 +5,9 @@ import { SHAP_FEATURES, CONFUSION_MATRIX, getDriftStatus } from "./mlService.js"
 let charts = {};
 let mlPingTimer = null;
 
-// Mock bus risk data. Represents the TRL-3 stub for the ML service risk output.
+// TRL-3 stub: fixed representative scores derived from the seed fault records
+// during development. A TRL-6 deployment calls POST /predict for each bus
+// in the fleet and sorts the results dynamically.
 const BUS_RISK = [
   { bus: "Bus 14", risk: 87 },
   { bus: "Bus 07", risk: 72 },
@@ -290,7 +292,8 @@ function pingMLService() {
   const last    = document.getElementById("ml-last-ping");
   if (!dot) return;
 
-  // Roughly 96% uptime to demonstrate the offline state occasionally.
+  // TRL-3 stub: simulates ~96% uptime. A TRL-6 deployment issues a real
+  // fetch("/health") with a timeout and inspects the HTTP status code.
   const isUp = Math.random() > 0.04;
 
   // Random plausible latency in the 28 to 50 ms band, matching the report's

@@ -46,6 +46,12 @@ function resolveAlert(id) {
   saveAlerts(alerts);
 }
 
+// Resets the per-session action counter. Call this on successful login so
+// the counter does not carry over from a previous session in the same tab.
+export function resetActionCount() {
+  localStorage.removeItem(ACTION_KEY);
+}
+
 // ── D1: Session request-rate detector ────────────────────────────────────────
 function runRateDetector() {
   const count = Number(localStorage.getItem(ACTION_KEY) || 0) + 1;

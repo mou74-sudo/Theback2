@@ -16,7 +16,7 @@ import {
 } from "./ui.js";
 
 import { initToolCheck, renderToolBoard } from "./toolcheck.js";
-import { runAnomalyDetectors, renderAnomalyPanel } from "./anomaly.js";
+import { runAnomalyDetectors, renderAnomalyPanel, resetActionCount } from "./anomaly.js";
 import { initAccessibility } from "./accessibility.js";
 
 let items = [];
@@ -210,6 +210,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       showMessage(err.message || "Login failed.", "error");
       return;
     }
+    resetActionCount();
     updateAuthUI();
     await loadPage();
     initToolCheck();

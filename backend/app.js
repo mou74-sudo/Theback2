@@ -135,7 +135,10 @@ function componentIndex(location) {
 }
 
 app.post("/predict", requireAuth, (req, res) => {
-  const item = req.body;
+  const item = req.body || {};
+  if (!item.severity && !item.location && !item.status) {
+    return res.status(400).json({ error: "At least one of severity, location, or status is required." });
+  }
   const features = [
     SEVERITY_MAP[item.severity] ?? 1,
     componentIndex(item.location),

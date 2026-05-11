@@ -42,8 +42,9 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
-  // Let backend API calls go straight to network
-  if (event.request.url.includes("localhost:3001")) {
+  // Let backend API calls go straight to network (works on both localhost and Vercel)
+  const path = new URL(event.request.url).pathname;
+  if (path.startsWith("/auth/") || path.startsWith("/v1/") || path === "/predict" || path === "/health") {
     return;
   }
 

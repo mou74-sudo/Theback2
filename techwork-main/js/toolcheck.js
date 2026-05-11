@@ -24,6 +24,9 @@ function loadLog() {
 
 function appendLog(entry) {
   const log = loadLog();
+  // Compute hash linking this entry to the previous head of the chain
+  const prevHash = log.length > 0 ? (log[0].hash || "0000") : "0000";
+  entry.hash = simpleHash(prevHash + entry.action + entry.toolTitle + entry.user + entry.timestamp);
   log.unshift(entry);
   if (log.length > 50) log.pop();
   localStorage.setItem(LOG_KEY, JSON.stringify(log));
@@ -101,14 +104,17 @@ function renderMovementLog() {
 
   const log = loadLog();
 
-  // Compute a simple hash chain over the log entries to demonstrate the
-  // tamper-evident pattern described in s4c. Each entry's hash includes
-  // the previous entry's hash, so any edit breaks the chain.
+  // Verify the hash chain. Each entry's stored hash must match the hash
+  // recomputed from the previous entry's hash + fields. Any mismatch
+  // indicates tampering and sets chainOk to false.
   let chainOk = true;
   let prevHash = "0000";
   for (const entry of [...log].reverse()) {
     const expected = simpleHash(prevHash + entry.action + entry.toolTitle + entry.user + entry.timestamp);
-    prevHash = expected;
+    if (entry.hash && entry.hash !== expected) {
+      chainOk = false;
+    }
+    prevHash = entry.hash || expected;
   }
 
   const badgeClass = chainOk ? "audit-chain-ok" : "audit-chain-broken";
