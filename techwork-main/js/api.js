@@ -2,20 +2,22 @@
  * API module. Talks to the Express backend when available,
  * falls back to localStorage so the frontend still works standalone.
  *
- * The backend runs on localhost:3001. A TRL-6 deployment would point
- * BASE_URL at the production server and add HTTPS + refresh-token logic.
+ * On localhost, the backend runs on :3001.
+ * On Vercel, API calls are relative (same origin) — vercel.json rewrites them.
  */
 
 import { mockItems } from "./mockData.js";
 
-const BASE_URL    = "http://localhost:3001";
+// On localhost use the separate Express server; on any deployed host use relative URLs.
+const IS_LOCAL  = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const BASE_URL  = IS_LOCAL ? "http://localhost:3001" : "";
+
 const STORAGE_KEY = "maintenance_items";
 const USER_KEY    = "maintenance_current_user";
 const TOKEN_KEY   = "maintenance_jwt";
 
 let useBackend = false;
 
-// Test whether the backend is reachable. Called once on module load.
 async function detectBackend() {
   try {
     const res = await fetch(`${BASE_URL}/health`, { signal: AbortSignal.timeout(1500) });
@@ -28,7 +30,6 @@ async function detectBackend() {
   }
 }
 
-// Run detection immediately so it completes before the first API call.
 const backendReady = detectBackend();
 
 function getToken() {
@@ -37,7 +38,9 @@ function getToken() {
 
 function authHeaders() {
   const token = getToken();
-  return token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+  return token
+    ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+    : { "Content-Type": "application/json" };
 }
 
 function copy(data) {
@@ -66,7 +69,7 @@ export async function loginUser(name, role) {
   await backendReady;
 
   if (useBackend) {
-    const res  = await fetch(`${BASE_URL}/auth/login`, {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, role })
@@ -99,7 +102,7 @@ export async function getMaintenanceItems() {
   await backendReady;
 
   if (useBackend) {
-    const res = await fetch(`${BASE_URL}/api/items`, { headers: authHeaders() });
+    const res = await fetch(`${BASE_URL}/v1/items`, { headers: authHeaders() });
     if (!res.ok) throw new Error("Failed to load items.");
     return res.json();
   }
@@ -112,7 +115,7 @@ export async function addMaintenanceItem(payload) {
   await backendReady;
 
   if (useBackend) {
-    const res = await fetch(`${BASE_URL}/api/items`, {
+    const res = await fetch(`${BASE_URL}/v1/items`, {
       method: "POST",
       headers: authHeaders(),
       body: JSON.stringify(payload)
@@ -133,7 +136,7 @@ export async function confirmInspection(itemId, noteText) {
   await backendReady;
 
   if (useBackend) {
-    const res = await fetch(`${BASE_URL}/api/items/${itemId}/inspect`, {
+    const res = await fetch(`${BASE_URL}/v1/items/${itemId}/inspect`, {
       method: "POST",
       headers: authHeaders(),
       body: JSON.stringify({ noteText })
@@ -146,11 +149,9 @@ export async function confirmInspection(itemId, noteText) {
   const items = loadStoredItems();
   const item  = items.find(i => i.id === itemId);
   if (!item) throw new Error("Item not found.");
-
   item.inspectionNotes.push({ text: noteText, createdAt: new Date().toLocaleString() });
   if (item.type === "fault") item.status = "inspected";
   if (item.type === "tool")  item.status = "returned";
-
   saveStoredItems(items);
   return copy(item);
 }
@@ -159,7 +160,7 @@ export async function moveToolItem(itemId, action) {
   await backendReady;
 
   if (useBackend) {
-    const res = await fetch(`${BASE_URL}/api/items/${itemId}/move`, {
+    const res = await fetch(`${BASE_URL}/v1/items/${itemId}/move`, {
       method: "POST",
       headers: authHeaders(),
       body: JSON.stringify({ action })
@@ -181,7 +182,7 @@ export async function resetMockData() {
   await backendReady;
 
   if (useBackend) {
-    const res = await fetch(`${BASE_URL}/api/reset`, {
+    const res = await fetch(`${BASE_URL}/v1/reset`, {
       method: "POST",
       headers: authHeaders()
     });
@@ -194,7 +195,7 @@ export async function resetMockData() {
   return copy(mockItems);
 }
 
-// ── ML predict (calls real backend /predict endpoint) ─────────────────────────
+// ── ML predict ────────────────────────────────────────────────────────────────
 export async function fetchPrediction(item) {
   await backendReady;
 
@@ -208,6 +209,5 @@ export async function fetchPrediction(item) {
     return res.json();
   }
 
-  // localStorage fallback: use the mlService simulator
   return null;
 }

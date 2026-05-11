@@ -37,7 +37,7 @@ function request(method, path, body, token) {
   });
 }
 
-let adminToken  = "";
+let adminToken    = "";
 let mechanicToken = "";
 let createdItemId = null;
 
@@ -77,19 +77,19 @@ describe("Auth", () => {
 });
 
 describe("Items - protected routes", () => {
-  test("GET /api/items requires auth", async () => {
-    const res = await request("GET", "/api/items");
+  test("GET /v1/items requires auth", async () => {
+    const res = await request("GET", "/v1/items");
     expect(res.status).toBe(401);
   });
 
-  test("GET /api/items returns array when authenticated", async () => {
-    const res = await request("GET", "/api/items", null, adminToken);
+  test("GET /v1/items returns array when authenticated", async () => {
+    const res = await request("GET", "/v1/items", null, adminToken);
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
   });
 
-  test("POST /api/items creates a new record", async () => {
+  test("POST /v1/items creates a new record", async () => {
     const payload = {
       type: "fault",
       title: "Test fault from Jest",
@@ -98,15 +98,15 @@ describe("Items - protected routes", () => {
       status: "open",
       notes: "Created by automated test suite."
     };
-    const res = await request("POST", "/api/items", payload, adminToken);
+    const res = await request("POST", "/v1/items", payload, adminToken);
     expect(res.status).toBe(201);
     expect(res.body.title).toBe(payload.title);
     expect(typeof res.body.id).toBe("number");
     createdItemId = res.body.id;
   });
 
-  test("POST /api/items/:id/inspect updates status to inspected", async () => {
-    const res = await request("POST", `/api/items/${createdItemId}/inspect`, { noteText: "Test inspection note from Jest." }, adminToken);
+  test("POST /v1/items/:id/inspect updates status to inspected", async () => {
+    const res = await request("POST", `/v1/items/${createdItemId}/inspect`, { noteText: "Test inspection note from Jest." }, adminToken);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("inspected");
     expect(res.body.inspectionNotes.length).toBeGreaterThan(0);

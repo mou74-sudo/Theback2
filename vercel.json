@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "outputDirectory": "techwork-main",
+  "rewrites": [
+    { "source": "/health",          "destination": "/api/index" },
+    { "source": "/auth/:path*",     "destination": "/api/index" },
+    { "source": "/v1/:path*",       "destination": "/api/index" },
+    { "source": "/predict",         "destination": "/api/index" }
+  ]
+}
