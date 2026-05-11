@@ -1,120 +1,182 @@
 # Presentation Script
 **COMP5067 — AR-Enhanced Maintenance Support System**
-Total budget: ~14 min 30 s | Format: 720p MP4
+Total budget: ~14 min 30 s · Format: 720p MP4
 
-Each speaker introduces themselves on their first slide so the marker can identify all five voices.
+Tip: read each slide aloud before recording. If you run out of breath mid-sentence, split it. These are starting points, not lines to memorise.
 
 ---
 
 ## Slide 1 — Title & Team · Jude · ~30 s
 
-"Hi, I'm Jude from the Computing AR pathway. Our project is an AR-Enhanced Maintenance Support System built for Bournemouth Central Bus Depot. Bus depots in the UK still run paper-based maintenance, and the Department for Transport puts the cost of unscheduled fleet downtime at £180 million a year — that's the problem we're prototyping against. I'll hand over to the rest of the team in a moment, but first let me introduce everyone: Abishek on the backend, Shiar on data analytics, Exauce on cyber security, and Mikku on integration and testing."
+"Hi, I'm Jude, and this is our AR-Enhanced Maintenance Support System for Bournemouth Central Bus Depot.
+
+The problem in one line: UK bus depots still run paper-based maintenance, and that costs the industry around £180 million a year in unscheduled downtime. Our prototype uses browser-based augmented reality and a machine learning risk score to change that — no specialist hardware, no app install, just a phone camera and a marker.
+
+I'm joined by Abishek on the backend, Shiar on data analytics, Exauce on cyber security, and Mikku on integration and testing."
 
 ---
 
 ## Slide 2 — Problem & Context · Jude · ~60 s
 
-"So why does this matter? The Department for Transport's 2023 statistics put unscheduled mechanical withdrawals as a leading cause of that £180 million annual downtime figure. On top of that, Palmarini and colleagues identified in 2018 that an ageing mechanic workforce means tacit diagnostic expertise is being lost — experienced mechanics retire and that knowledge goes with them. The depot brief gave us three specific pain points: faults that are invisible until they cause a withdrawal, missing tools with no accountability trail, and paper records that are easy to manipulate. Bournemouth Central is a realistic test case — a mixed-vintage fleet, a constrained device budget, and a fully paper-based fault flow. The research question we set ourselves was: can browser-based AR and an interpretable ML risk score reduce fault-resolution friction under those exact constraints?"
+"So where does that £180 million figure come from? The Department for Transport's 2023 statistics identify mechanical defects as the leading cause of unscheduled bus withdrawals in England. That's the financial side.
+
+The human side is what Palmarini and colleagues flagged back in 2018 — mechanics retire and take their diagnostic instincts with them. There's no system capturing what they know, so the next person starts from scratch.
+
+The project brief gave us three concrete pain points: faults that stay invisible until a bus breaks down mid-route, tools that go missing with no audit trail, and paper records that can be changed after the fact.
+
+Bournemouth Central is a perfect test case for this. Mixed-vintage fleet, limited device budget, everything on paper. The question we set out to answer was simple: can we solve all three of those problems in a browser, with no extra hardware, at TRL-3?"
 
 ---
 
 ## Slide 3 — System Concept · Abishek · ~60 s
 
-"I'm Abishek, responsible for the backend. The system delivers three integrated capabilities in one auditable workflow. First, AR fault inspection: AR.js fiducial markers detect bus components in the browser, and A-Frame renders a live overlay showing the maintenance history and a thirty-day ML risk score. Second, predictive risk scoring: a logistic regression model trained offline on five thousand synthetic records is embedded in the Express backend and returns a score in under a hundred milliseconds. Third, tool accountability: a hash-chain append-only audit log tracks every tool checkout and return, with an admin-only anomaly panel on top. The full stack is A-Frame and AR.js on the frontend, Express on Node 22 serverless on Vercel for the backend, scikit-learn with SHAP for the ML, and Chart.js for the dashboard — all free-tier and browser-based with no specialist hardware."
+"I'm Abishek, and I'll walk you through how the system actually works.
+
+We built three things that connect into one workflow. First, an AR inspection layer — a mechanic points their phone at a printed marker on or near a bus component, and the browser overlays the fault record and a live thirty-day risk score straight onto the camera view. No app download.
+
+Second, a predictive risk engine — a logistic regression model running on the backend that scores each fault and returns a result in under a hundred milliseconds.
+
+Third, a tool accountability system — every checkout and return gets logged in a tamper-evident hash chain, with an admin panel that flags anything suspicious.
+
+The whole stack is A-Frame and AR.js on the frontend, Express on Node 22 deployed to Vercel, scikit-learn for the ML, and Chart.js for the dashboard. Free tier, runs in any browser."
 
 ---
 
 ## Slide 4 — Design Rationale · Abishek · ~75 s
 
-"Every significant architectural decision involved a trade-off, and I want to walk through four of them. First, AR tracking: we chose AR.js fiducial markers over WebXR markerless tracking because Salii and colleagues showed in 2025 that the WebXR depth API is still experimental on Android and absent entirely on iOS Safari — markers give us reliable cross-platform tracking in a workshop environment. Second, model choice: we chose logistic regression over a random forest ensemble. Rudin argued in 2019 that transparent models outperform post-hoc explanations for user trust at safety-critical decision points — and our recall after class-weight balancing is competitive with published ensemble figures, as Shiar will show. Third, architecture: a modular monolith over microservices, following Carvalho and colleagues' 2025 finding that this is appropriate for small teams — one Vercel serverless function, one codebase, free tier. Fourth, persistence: in-memory store over MongoDB at TRL-3 for scope discipline, with MongoDB Atlas named explicitly as the TRL-4 upgrade path."
+"Every major decision we made came with a trade-off, so let me be upfront about four of them.
+
+AR tracking — we looked at WebXR markerless first, which would let you point at any surface. But Salii and colleagues showed last year that the depth API is still experimental on Android and completely absent on iOS Safari. In a workshop with mixed-vintage phones, that's a dealbreaker. Fiducial markers work reliably on everything.
+
+Model choice — we went with logistic regression rather than a random forest. Rudin's 2019 argument settled it for us: when a mechanic is deciding whether to pull a bus from service, they need to understand why the model is flagging it, not just that it did. And as Shiar will show, our recall is competitive with published ensemble figures anyway.
+
+Architecture — one Express serverless function on Vercel rather than microservices. Carvalho and colleagues put it well: for a team of five at prototype stage, a modular monolith is the right call.
+
+Persistence — in-memory store rather than a database. Resets on cold start, yes, but that's a named TRL-4 upgrade to MongoDB Atlas. At TRL-3, shipping scope discipline matters more than persistence."
 
 ---
 
 ## Slide 5 — Demo 1: AR Fault Inspection · Jude · ~90 s
 
-"Back to me for the first demo. I'm going to walk the AR fault inspection flow. Step one — print and display the Hiro marker. Step two — AR.js detects the marker in the browser in around two hundred milliseconds, matching Mojidra and colleagues' 2024 benchmarks for fiducial marker tracking under workshop lighting. Step three — A-Frame renders the fault overlay: title, severity badge, and the thirty-day ML risk score from the backend. Step four — the AR client posts to slash-predict, the overlay updates with the returned probability and risk band within our hundred-millisecond NFR1 budget. Step five — the inspector adds a note and confirms.
+"Back to me for the first live demo — AR fault inspection.
 
-FR1 is fully met: both the Hiro fault marker and the Kanji tool marker are detected and overlaid in ar.html. FR2 is partial: overlays are static — there is no depth-aware occlusion. The WebXR depth API is absent on iOS Safari, so we couldn't do per-pixel AR at TRL-3. The TRL-6 path is ARCore and ARKit depth APIs. FR4 is fully met: the predict endpoint returns F1 of 0.850 and AUC of 0.926 inside the latency budget."
+The flow has five steps. You print the Hiro marker and hold it in front of the camera. AR.js picks it up in around 200 milliseconds — that matches Mojidra and colleagues' 2024 benchmarks for fiducial tracking under workshop lighting conditions. A-Frame then draws the fault overlay directly over the marker: the fault title, severity badge, and the ML risk score from the backend. The client sends the fault data to the predict endpoint, and the overlay updates with a thirty-day probability and risk band — that round trip stays inside our 100 millisecond target. Finally, the mechanic adds an inspection note and confirms.
+
+Against the brief: FR1 is fully met — both the Hiro fault marker and the Kanji tool marker trigger overlays in the AR view. FR4 is fully met — the risk score comes back inside the latency budget with F1 of 0.850 and AUC of 0.926 shown in the overlay.
+
+FR2 is the honest partial. The overlays are flat — they don't occlude correctly around 3D geometry. The WebXR depth API that would fix this doesn't exist on iOS Safari yet. Our TRL-6 path is ARCore and ARKit. We've documented it rather than hidden it."
 
 ---
 
 ## Slide 6 — Demo 2: Tool Checkout & Audit · Mikku · ~75 s
 
-"Hi, I'm Mikku, responsible for integration and testing. The second demo covers tool checkout and the hash-chain audit log. A mechanic taps Checkout on a tool card. A simulated QR-scan overlay fires, the action is posted to slash-v1-items-colon-id-slash-move on the backend, and the movement log appends an entry with the action, tool name, user, and timestamp in a single transaction. A DJB2-style hash seals each entry to the previous head of the chain, making the log append-only per session. The chain-integrity badge in the UI re-verifies the whole chain on every update.
+"Hi, I'm Mikku, I handled integration and testing. My demo is the tool board and the audit chain.
 
-FR5 — tool accountability — is fully met: checkout and return are implemented end to end. NFR5 — auditability — is fully met: anomaly detector D3 flags duplicate timestamps, which is the signature of replay or post-hoc modification. This is admin-only. Our walkthrough study found that the tool checkout task, T2, completed in six to nine seconds across all five participants regardless of role, confirming the scan metaphor is legible."
+When a mechanic checks out a tool, they tap the Checkout button on the tool card. A simulated QR-scan overlay fires — mimicking what a real asset tag would trigger — and the backend logs the action, the tool, the user, and a timestamp in one transaction. Each log entry gets hashed against the previous one using a DJB2-style chain, so you can't insert or modify an entry without breaking the chain. The integrity badge in the UI re-verifies the whole chain every time a new entry lands.
+
+FR5 — tool accountability — is fully met. NFR5 — auditability — is also fully met. Anomaly detector D3 watches for duplicate timestamps, which is what a replay attack or a backdated entry looks like.
+
+One number from our walkthrough: the tool checkout task took between six and nine seconds across all five participants, regardless of their role. The scan metaphor works — people got it without being told."
 
 ---
 
 ## Slide 7 — Cyber Security · Exauce · ~75 s
 
-"I'm Exauce from the cyber security pathway. Let me walk through the security architecture. Passwords are stored as bcrypt hashes at cost ten, following Provos and Mazières' original recommendation. Login returns a JWT signed with HS256, carrying the user's name and role, with an eight-hour expiry. Every slash-v1 route validates the JWT signature and expiry — a missing or expired token gets a 401 with no information about whether the username exists. Admin-only routes additionally check the role claim server-side, so a mechanic hitting slash-v1-reset gets a 403.
+"I'm Exauce from the cyber security pathway.
 
-We ran a full STRIDE analysis: spoofing is mitigated by JWT expiry plus bcrypt, tampering by the hash-chain log, repudiation by the username-and-timestamp audit trail, information disclosure by mandatory Bearer tokens on all data routes, elevation of privilege by server-signed role claims. DoS rate limiting is documented as a TRL-6 upgrade. The admin panel shows three anomaly detectors: D1 flags high page-load counts, D2 flags unrecognised role values — a sign of client-state manipulation — and D3 flags duplicate timestamps in the movement log. TLS 1.3 comes from the Vercel platform; CORS is locked to the allowed origin environment variable in production."
+Authentication first. Passwords are stored as bcrypt hashes at cost ten — the original Provos and Mazières recommendation and still the Express ecosystem standard. Login returns a JWT signed with HS256, eight-hour expiry, carrying only the user's name and role. Every protected route checks that token. A missing or expired token gets a 401. A mechanic trying to reach an admin-only endpoint gets a 403. The error messages don't confirm whether a username exists.
+
+We ran a full STRIDE analysis. Spoofing is handled by bcrypt and short-lived JWTs. Tampering is handled by the hash-chain log. Repudiation is covered by the username-and-timestamp audit trail. Information disclosure is prevented by mandatory Bearer tokens on every data route. Elevation of privilege is blocked because role claims are server-signed — you can't just change your role in the browser. Rate limiting for denial-of-service is a documented TRL-6 item.
+
+The admin panel surfaces three anomaly detectors: D1 catches unusual page-load volume, D2 flags unrecognised role values — a sign someone has tampered with their session state — and D3 catches duplicate timestamps in the movement log. TLS 1.3 comes from Vercel; CORS is locked to the allowed-origin environment variable in production."
 
 ---
 
 ## Slide 8 — Data Analytics Dashboard · Shiar · ~90 s
 
-"I'm Shiar from the data analytics pathway. The analytics dashboard follows Few's 2013 principle of four KPI cards at the top: total faults, open faults, missing tools, and average ML risk score. Below that is a chart grid — fault distribution by component, monthly volume trend, severity breakdown, and the five highest-risk buses from the ML model. The SHAP card shows global feature importance: severity is the dominant predictor, followed by open status. This is the interpretability that Rudin argued for — stakeholders can see why the model flags a fault as high-risk, not just that it does.
+"I'm Shiar from the data analytics pathway, and I'll cover the dashboard and the ML results.
 
-The headline ML metrics are F1 of 0.850, AUC-ROC of 0.926 against a random baseline of 0.500, recall of 0.835, and precision of 0.865 on the twelve-fifty holdout set. The dashboard also includes a WCAG 2.1 AA high-contrast toggle and a larger-text toggle, both implemented by Exauce."
+The dashboard layout follows Few's 2013 principle — four KPI cards at the top so the most critical numbers are visible at a glance: total faults, open faults, missing tools, and the average ML risk score. Below that is a chart grid: fault distribution by component, monthly volume trend, severity breakdown, and the five highest-risk buses.
+
+The SHAP card is what ties it together. It shows which features are actually driving the risk predictions — severity is dominant, open status is second. This is Rudin's interpretability argument in practice: a mechanic or supervisor can look at the dashboard and understand why the model is recommending action on a particular bus, not just that it is.
+
+The headline numbers on the holdout set: F1 of 0.850, AUC-ROC of 0.926 against a random baseline of 0.500, recall of 0.835, precision of 0.865. The predict endpoint returns those scores in under 35 milliseconds at the 95th percentile. I'll explain how we got there on the next slide."
 
 ---
 
 ## Slide 9 — ML Pipeline & Metrics · Shiar · ~75 s
 
-"The pipeline starts with five thousand synthetic records generated to match UK fleet failure rates. Eighteen features go through StandardScaler normalisation and one-hot encoding with drop-first, then into a class-weight-balanced logistic regression from scikit-learn. Class-weight balancing is important here: faults are underrepresented, so without balancing the model would optimise accuracy by ignoring them. The one-thousand-two-fifty holdout gives us the confusion matrix on screen: around seven hundred and one true negatives, one hundred and thirteen false positives, one hundred and three false negatives, and four hundred and ninety-eight true positives. The false-negative rate at threshold 0.50 is 16.5 percent — that is the high-cost cell because a missed fault risks a vehicle withdrawal. Lowering the threshold would trade false negatives for more false positives; we deferred that threshold choice to stakeholder review as it depends on the cost the depot assigns to each error type."
+"The training data is five thousand synthetic records generated to reflect UK fleet failure rates. Eighteen features go through standard scaling and one-hot encoding, then into a class-weight-balanced logistic regression from scikit-learn. The class-weight balancing step is critical — faults are underrepresented in real maintenance data, so without it the model would just predict 'no fault' most of the time and still look accurate.
+
+The holdout is twelve hundred and fifty records. The confusion matrix gives us roughly 700 true negatives, 113 false positives, 103 false negatives, and 498 true positives. The false-negative rate is 16.5 percent at a threshold of 0.5 — that's the cell that matters most, because a missed fault is a bus that fails in service.
+
+We could lower the threshold to cut false negatives further, but that trades them for more false positives — unnecessary inspections. That threshold decision depends on what the depot manager thinks each type of error costs, so we've left it as a documented stakeholder choice rather than making it ourselves."
 
 ---
 
 ## Slide 10 — Integration Walkthrough · Abishek · ~60 s
 
-"The five-step integration trace from Section 4e of the report. Step one: the mechanic logs in as alex.mechanic, receives a JWT, and RBAC immediately hides the admin controls and anomaly panel. Step two: they apply the high-risk filter and select a critical brake caliper fault. Step three: AR.js detects the Hiro marker in around two hundred milliseconds and A-Frame renders the overlay with the title and severity badge. Step four: the AR client posts to slash-predict with the fault's severity and location; the backend returns the thirty-day probability and F1/AUC context within the hundred-millisecond NFR1 budget. Step five: the inspector adds a note, the record is updated, and the dashboard recalculates risk scores on reload. One JWT, one data path — all five pathways integrate at steps four and five."
+"This is the five-step trace from Section 4e of the report — the path that joins all five pathways together.
+
+Step one: the mechanic logs in as alex.mechanic and gets a JWT back. RBAC immediately hides the admin controls and anomaly panel from their view. Step two: they filter by high risk and select the critical brake caliper fault. Step three: they hold the phone over the Hiro marker — AR.js detects it in around 200 milliseconds and renders the overlay. Step four: the AR client posts to the predict endpoint; the backend returns the thirty-day probability and the F1 and AUC context inside the 100 millisecond NFR1 budget. Step five: they add an inspection note, the record updates, and the dashboard recalculates on reload.
+
+One JWT, one data path — all five pathways converge at steps four and five."
 
 ---
 
 ## Slide 11 — Evaluation Against the Brief · Mikku · ~60 s
 
-"Six of seven functional requirements are fully met. FR2 is partial — the AR depth occlusion issue Jude explained earlier. All eight non-functional requirements hit their quantitative targets: slash-predict runs at under 80 milliseconds p95 against a hundred-millisecond target, AR cold-start is around three seconds on mid-range Android against a five-second target, TLS 1.3 is provided by Vercel, JWT and bcrypt are in place, the hash-chain log is per-session, WCAG 2.1 AA toggles are implemented, twenty-eight Jest tests pass on every commit against a floor of twenty, and the whole system runs on Vercel's free tier accessible by any browser. One honest caveat on the ML figures: they are computed on synthetic data, so they are a ceiling, not a deployment guarantee."
+"Six of seven functional requirements are fully met. FR2 is the only partial, and that's the AR depth occlusion gap Jude covered.
+
+All eight non-functional requirements hit their targets. The predict endpoint runs at under 80 milliseconds at the 95th percentile, well inside the 100 millisecond budget. AR cold-start is around three seconds on a mid-range Android device, inside the five-second target. TLS 1.3 comes from Vercel. JWT and bcrypt are in place. The hash-chain log runs per-session. WCAG 2.1 AA toggles are implemented. Twenty-eight Jest tests pass on every commit, eight above the floor of twenty. And the whole system runs on Vercel's free tier, accessible from any browser.
+
+The one caveat we're putting on the record ourselves: the ML figures are from synthetic data. They're a ceiling on real-world performance, not a deployment guarantee."
 
 ---
 
 ## Slide 12 — Comparison with Published Work · Shiar · ~45 s
 
-"Against published baselines, our logistic regression at F1 0.850 and AUC 0.926 outperforms Ibrahim and colleagues' random forest ensemble at F1 0.71, Gawde's XGBoost at F1 0.75, Cummins's median LR baseline at F1 0.62, and Marchand's ensemble lifecycle model at F1 0.69. The key driver is class-weight balancing improving recall. The critical caveat, from Nieminen and colleagues, is that synthetic-data metrics are an upper bound — TRL-4 field retraining on real depot records is the essential next step before any of these figures can be treated as deployment-grade."
+"Our logistic regression scores F1 of 0.850 and AUC of 0.926. Against published work: Ibrahim and colleagues' random forest ensemble is at F1 0.71, Gawde's XGBoost at 0.75, Cummins's median logistic regression baseline at 0.62, and Marchand's ensemble model at 0.69. Class-weight balancing is the main reason we outperform the other LR results.
+
+The caveat from Nieminen and colleagues is important here: synthetic-data metrics are an upper bound. TRL-4 retraining on real depot records is the critical next step before any of these numbers mean anything in the field."
 
 ---
 
 ## Slide 13 — Limitations, Ethics & Sustainability · Exauce · ~60 s
 
-"Three technical limitations we named deliberately, not as oversights. The training data is synthetic — metrics are a ceiling. The in-memory store resets on Vercel cold starts, so the demo URL needs a slash-health warm-up before the live recording. And FR2 AR depth occlusion remains absent because the WebXR depth API is not mature. On ethics: the audit log captures mechanic names and timestamps, which is personal data under UK GDPR Article 6(1)(f). A DPIA and privacy notice will be required at TRL-6. There is also a surveillance risk if the log is repurposed for performance management rather than safety audits — admin-only access is the current technical control. The TRL-4 hybrid-data pilot will need an ethics committee review. On sustainability: browser-based AR eliminates specialist hardware, free-tier deployment minimises compute, and predictive maintenance reduces unscheduled withdrawals and extends vehicle service life."
+"I want to be upfront about the limitations rather than bury them. Three technical ones: the training data is synthetic, so the metrics are a ceiling. The in-memory store resets on Vercel cold starts, which is why we hit the health endpoint before recording the demo. And the AR surface doesn't yet meet WCAG 2.1 AA — XR accessibility tooling is still immature industry-wide.
+
+On ethics: the audit log holds mechanic names and timestamps, which is personal data under UK GDPR Article 6(1)(f). A DPIA and privacy notice are required before TRL-6. There's also a surveillance risk — if the log gets used for performance management instead of safety audits, it's harmful. Admin-only access is the current control, and it would need a stronger policy at TRL-5.
+
+On sustainability: no specialist hardware, free-tier hosting, and predictive maintenance that keeps buses running longer rather than pulling them from service unnecessarily."
 
 ---
 
 ## Slide 14 — Pathway Contributions · All · ~75 s total
 
-Each person speaks one sentence:
+*Each person speaks one sentence. Go in this order: Jude, Abishek, Shiar, Exauce, Mikku.*
 
-**Jude:** "I built the AR marker flow in ar.html using AR.js and A-Frame, including the dual-marker UX for faults and tools and the cold-start optimisation that brings AR up in around three seconds."
+**Jude:** "I built the AR layer — the dual-marker flow in ar.html, the A-Frame fault and tool overlays, and the cold-start optimisation that gets AR up in around three seconds."
 
-**Abishek:** "I built the Express REST API, the bcrypt authentication and JWT middleware, and the Vercel serverless deployment including the slash-predict endpoint."
+**Abishek:** "I built the Express REST API, the bcrypt and JWT authentication middleware, and the Vercel serverless deployment including the predict endpoint."
 
-**Shiar:** "I trained the logistic regression on five thousand synthetic records, implemented SHAP global importance, and built the analytics dashboard charts and the PSI drift-monitoring field."
+**Shiar:** "I generated the training data, trained and evaluated the logistic regression, implemented SHAP feature importance, and built the dashboard charts and the PSI drift-monitoring field."
 
-**Exauce:** "I implemented the STRIDE threat model, the WCAG 2.1 AA accessibility toggles, the service worker, and the print stylesheet for paper job sheets."
+**Exauce:** "I delivered the STRIDE threat model, the WCAG 2.1 AA accessibility toggles, the service worker for offline resilience, and the print stylesheet for paper job sheets."
 
-**Mikku:** "I built the tool board, the hash-chain audit log, the three anomaly detectors, and the twenty-eight-test Jest suite that runs on every commit."
+**Mikku:** "I built the tool board, the hash-chain audit log, all three anomaly detectors, and the twenty-eight test Jest suite."
 
 ---
 
 ## Slide 15 — TRL Roadmap & Reflection · Jude · ~45 s
 
-"The roadmap runs in three steps from here. TRL-4: two months of real depot records, MongoDB Atlas for persistence, and argon2id password hashing. TRL-5: a within-subjects usability trial with two mechanics for one shift each and a false-negative cost discussion with the depot manager. TRL-6: full depot deployment for one month with OpenTelemetry, automated drift-aware retraining, and a formal WCAG audit of the AR surface.
+"Three more steps to get this into production.
 
-Our reflection in one sentence: three pathways, one prototype — integration was the work, not the polish.
+TRL-4: swap the synthetic training data for two months of real depot records, move to MongoDB Atlas, and upgrade password hashing to argon2id. TRL-5: run a within-subjects usability trial with two mechanics for one shift each, and have a frank conversation with the depot manager about where to set the false-negative threshold. TRL-6: full depot for one month, OpenTelemetry for observability, automated drift-aware retraining, and a formal WCAG audit of the AR surface.
 
-Thank you — we're happy to take questions."
+Three pathways, one prototype — integration was the work, not the polish.
+
+Thanks very much — we're happy to take questions."
 
 ---
 
@@ -135,15 +197,16 @@ Thank you — we're happy to take questions."
 | 11 | Mikku | 60 s |
 | 12 | Shiar | 45 s |
 | 13 | Exauce | 60 s |
-| 14 | All (×5) | 75 s |
+| 14 | All × 5 | 75 s |
 | 15 | Jude | 45 s |
 | **Total** | | **~14 min 30 s** |
 
 ---
 
-## Recording tips
+## Recording checklist
 
-- Each speaker says their name and pathway on their first slide so the marker can identify all five voices.
-- Do a dry run at 720p before the real recording — check audio levels and warm up the Vercel URL with a slash-health request first.
-- Trim any segment that runs over; the brief hard-caps the video at 15 minutes.
-- Export as MP4 H.264, 720p minimum.
+- Hit the Vercel `/health` endpoint to warm up the instance before you start recording
+- Each speaker says their name on their first slide — the marker needs to hear all five voices
+- Record a dry run first and check nobody goes over their time budget
+- Export as MP4 H.264, 720p minimum
+- The brief hard-caps the video at 15 minutes — trim ruthlessly if needed
