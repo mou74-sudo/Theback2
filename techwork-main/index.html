@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR Maintenance Frontend Prototype</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <section class="login-screen" id="login-screen">
+    <div class="login-card">
+      <div class="a11y-mount" style="display:flex; justify-content:flex-end; margin-bottom:0.6rem;"></div>
+      <h1>AR Maintenance Support System</h1>
+      <p>
+        Frontend-only login mock-up for demonstrating role-based access in the bus depot prototype.
+      </p>
+
+      <form id="login-form" class="login-form">
+        <label>
+          Display name
+          <input name="name" type="text" placeholder="Example: Alex Mechanic" required />
+        </label>
+
+        <label>
+          Role
+          <select name="role" required>
+            <option value="mechanic">Mechanic</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="admin">Admin</option>
+          </select>
+        </label>
+
+        <button class="primary-button" type="submit">Enter Prototype</button>
+      </form>
+
+      <div class="role-help">
+        <h2>Role guide</h2>
+        <p><strong>Mechanic:</strong> inspect faults and tools.</p>
+        <p><strong>Supervisor:</strong> inspect records and review dashboard information.</p>
+        <p><strong>Admin:</strong> access all controls, including resetting demo data.</p>
+      </div>
+    </div>
+  </section>
+
+  <header class="app-header hidden" id="app-header">
+    <div>
+      <h1>AR Maintenance Support System</h1>
+      <p>Frontend prototype for bus depot fault inspection and tool tracking</p>
+    </div>
+
+    <div class="header-actions">
+      <div class="a11y-mount"></div>
+      <span class="user-pill" id="user-pill">Not logged in</span>
+      <button class="secondary-button admin-only" id="reset-data-button">Reset Demo Data</button>
+      <a class="secondary-button header-link supervisor-only" href="dashboard.html">Analytics Dashboard</a>
+      <a class="secondary-button header-link" href="ar.html">Open AR View</a>
+      <button class="secondary-button" id="logout-button">Logout</button>
+    </div>
+  </header>
+
+  <main class="layout hidden" id="app-shell">
+    <section class="summary-grid" id="summary-grid"></section>
+
+    <section class="panel demo-panel">
+      <div>
+        <h2>Demo Workflow</h2>
+        <p>
+          Add or select a maintenance record, inspect it, add a note, confirm the inspection,
+          then open the AR view to demonstrate the simulated or marker-based overlay workflow.
+        </p>
+      </div>
+
+      <ol>
+        <li>Select or add a fault/tool record</li>
+        <li>Review the details</li>
+        <li>Add an inspection note</li>
+        <li>Confirm the inspection</li>
+        <li>Open AR view to simulate marker-based inspection</li>
+      </ol>
+    </section>
+
+    <section class="panel role-panel" id="role-panel">
+      <h2>Current Access Level</h2>
+      <p id="role-message">
+        Your role determines which prototype controls are shown.
+      </p>
+    </section>
+
+    <section class="panel add-panel">
+      <div class="panel-header">
+        <h2>Add Maintenance Record</h2>
+        <p>Create a mock fault or tool record for the prototype.</p>
+      </div>
+
+      <form id="add-item-form" class="add-form">
+        <div class="form-grid">
+          <label>
+            Type
+            <select name="type" required>
+              <option value="fault">Fault</option>
+              <option value="tool">Tool</option>
+            </select>
+          </label>
+
+          <label>
+            Title
+            <input name="title" type="text" placeholder="Brake system fault" required />
+          </label>
+
+          <label>
+            Location
+            <input name="location" type="text" placeholder="Front wheel area" required />
+          </label>
+
+          <label>
+            Severity
+            <select name="severity" required>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </label>
+
+          <label>
+            Status
+            <select name="status" required>
+              <option value="open">Open</option>
+              <option value="missing">Missing</option>
+              <option value="returned">Returned</option>
+              <option value="inspected">Inspected</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          Notes
+          <textarea name="notes" placeholder="Describe the fault, tool issue, or inspection context." required></textarea>
+        </label>
+
+        <button class="primary-button" type="submit">Add Record</button>
+      </form>
+    </section>
+
+    <!-- ── Tool Board ─────────────────────────────────────────────────── -->
+    <section class="panel tool-board-panel" id="tool-board-section">
+      <div class="panel-header">
+        <h2>Tool Board — Checkout &amp; Return</h2>
+        <p>Simulate the QR-scan checkout/return flow. Each action fires a <code>tool:movement</code> event and updates the movement log.</p>
+      </div>
+      <div id="tool-board-list" class="tool-board-list"></div>
+
+      <div class="movement-log-section">
+        <h3>Movement Log</h3>
+        <div id="movement-log" class="movement-log"></div>
+      </div>
+    </section>
+
+    <!-- ── Anomaly Monitoring (admin-only) ────────────────────────────── -->
+    <section class="panel anomaly-panel admin-only" id="anomaly-section">
+      <div class="panel-header">
+        <h2>Anomaly &amp; Suspicious-Behaviour Monitoring</h2>
+        <p>Three TRL-3 rule-based detectors: session rate, role-claim drift, and audit-log integrity. TRL-6 successor: OpenTelemetry → Prometheus → Alertmanager.</p>
+      </div>
+      <div id="anomaly-list"></div>
+    </section>
+
+    <section class="filter-panel">
+      <div>
+        <h2>Maintenance Records</h2>
+        <p>Filter records to focus on faults, tools, open issues, or missing equipment.</p>
+      </div>
+
+      <div class="filter-buttons" id="filter-buttons">
+        <button class="filter-button active" data-filter="all">All</button>
+        <button class="filter-button" data-filter="faults">Faults</button>
+        <button class="filter-button" data-filter="tools">Tools</button>
+        <button class="filter-button" data-filter="open">Open</button>
+        <button class="filter-button" data-filter="missing">Missing</button>
+        <button class="filter-button" data-filter="high-risk">High Risk</button>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <section class="panel">
+        <div class="panel-header">
+          <h2 id="list-title">All Records</h2>
+          <p id="list-count">Select an item to inspect it.</p>
+        </div>
+
+        <div id="item-list" class="item-list"></div>
+      </section>
+
+      <section class="panel details-panel" id="details-panel">
+        <h2>Inspection Details</h2>
+        <p class="muted">Choose a fault or tool from the list.</p>
+      </section>
+    </section>
+
+    <div id="message-box" class="message-box hidden"></div>
+  </main>
+
+  <!-- QR Scan overlay -->
+  <div id="qr-overlay" class="qr-overlay hidden">
+    <div class="qr-modal">
+      <div class="qr-spinner"></div>
+      <p id="qr-scan-label">Scanning QR tag…</p>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>AR Inspection View</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="ar-body">
+  <header class="ar-header">
+    <div>
+      <h1>AR Inspection View</h1>
+      <p class="muted">Camera-based marker inspection for maintenance records</p>
+    </div>
+
+    <div class="header-actions">
+      <div class="a11y-mount"></div>
+      <span class="user-pill" id="ar-user-pill">Checking user...</span>
+      <a class="secondary-button header-link" href="index.html">Back to Dashboard</a>
+      <button class="secondary-button" id="ar-logout-button">Logout</button>
+    </div>
+  </header>
+
+  <main class="ar-page-layout">
+    <section class="panel mode-panel">
+      <div>
+        <h2>Marker Inspection</h2>
+        <p id="ar-role-message" class="muted">Checking login status.</p>
+      </div>
+
+      <div class="mode-buttons">
+        <button class="primary-button" id="select-priority-button">
+          Select Priority Record
+        </button>
+
+        <button class="secondary-button" id="clear-selection-button">
+          Clear Selection
+        </button>
+      </div>
+    </section>
+
+    <section class="ar-content-grid">
+      <section class="ar-viewport">
+        <section class="camera-frame" id="camera-frame">
+          <iframe
+            id="ar-camera-frame"
+            class="ar-camera-iframe"
+            src="ar-camera.html"
+            title="AR camera marker view"
+            allow="camera; microphone; autoplay; xr-spatial-tracking; fullscreen"
+          ></iframe>
+
+          <div class="real-marker-help">
+            <strong>Camera Marker Detection</strong>
+            <span id="marker-help-text">Point the camera at a Hiro marker.</span>
+          </div>
+        </section>
+      </section>
+
+      <aside class="ar-panel">
+        <h2>Record Details</h2>
+
+        <div id="ar-detail-card" class="ar-detail-card">
+          <p class="muted">
+            Select a maintenance record or use the priority record button.
+          </p>
+        </div>
+
+        <hr>
+
+        <h2>Available Records</h2>
+        <p class="muted">
+          Choose the record that the marker should represent during inspection.
+        </p>
+
+        <div id="ar-record-list" class="ar-list"></div>
+
+        <p class="ar-status" id="ar-status">
+          Waiting for marker detection.
+        </p>
+      </aside>
+    </section>
+  </main>
+
+  <div id="message-box" class="message-box hidden"></div>
+
+  <script type="module" src="js/ar.js"></script>
+</body>
+</html>

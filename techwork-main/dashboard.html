@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supervisor Analytics Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <header class="app-header">
+    <div>
+      <h1>Supervisor Analytics Dashboard</h1>
+      <p>Fault trends, severity breakdown, and predicted bus risk — TRL-3 prototype</p>
+    </div>
+    <div class="header-actions">
+      <div class="a11y-mount"></div>
+      <span class="user-pill" id="dash-user-pill">Loading…</span>
+      <button class="secondary-button" id="dash-refresh">Refresh</button>
+      <a class="secondary-button header-link" href="index.html">Back to Records</a>
+      <a class="secondary-button header-link" href="ar.html">Open AR View</a>
+      <button class="secondary-button" id="dash-logout">Logout</button>
+    </div>
+  </header>
+
+  <main class="layout" id="dash-content">
+
+    <!-- Auth notice (hidden when logged in) -->
+    <div class="panel hidden" id="dash-auth-notice" style="margin-bottom:1rem; border-left: 5px solid var(--danger);">
+      <h2 style="margin-top:0">Login required</h2>
+      <p>Return to the <a href="index.html" style="color:var(--info)">records dashboard</a> and log in before viewing analytics.</p>
+    </div>
+
+    <!-- ── ML Live status bar ─────────────────────────────────────────────── -->
+    <section class="ml-status-bar" aria-live="polite">
+      <div class="ml-live-indicator">
+        <span class="ml-live-dot" id="ml-live-dot" aria-hidden="true"></span>
+        <span id="ml-live-label">ML Service: Live</span>
+      </div>
+      <div class="ml-metric">Model: <strong>Logistic Regression</strong></div>
+      <div class="ml-metric">F1: <strong>0.638</strong></div>
+      <div class="ml-metric">AUC-ROC: <strong>0.773</strong></div>
+      <div class="ml-metric">p95 latency: <strong id="ml-latency">38 ms</strong></div>
+      <div class="ml-metric">Last ping: <strong id="ml-last-ping">—</strong></div>
+    </section>
+
+    <!-- ── High Risk Alerts panel ─────────────────────────────────────────── -->
+    <section class="panel high-risk-panel" id="high-risk-panel">
+      <h2>High-Risk Buses — Immediate Attention</h2>
+      <p class="muted">Buses scoring ≥60% on the 30-day failure model (complement-of-product aggregation, four-band scale).</p>
+      <div class="high-risk-list" id="high-risk-list">
+        <div class="high-risk-empty">Loading risk predictions…</div>
+      </div>
+    </section>
+
+    <!-- ── KPI Row ─────────────────────────────────────────────────────────── -->
+    <section class="summary-grid kpi-grid">
+      <article class="summary-card">
+        <h3>Open Faults</h3>
+        <strong id="kpi-faults">—</strong>
+      </article>
+      <article class="summary-card">
+        <h3>Missing Tools</h3>
+        <strong id="kpi-tools">—</strong>
+      </article>
+      <article class="summary-card">
+        <h3>High / Critical Issues</h3>
+        <strong id="kpi-high">—</strong>
+      </article>
+      <article class="summary-card">
+        <h3>Total Records</h3>
+        <strong id="kpi-total">—</strong>
+      </article>
+    </section>
+
+    <!-- ── Chart 2×2 grid ────────────────────────────────────────────────── -->
+    <section class="chart-grid">
+
+      <div class="panel chart-panel">
+        <h2>Fault Distribution by Component</h2>
+        <p class="muted">Count of recorded faults grouped by vehicle component area.</p>
+        <div class="chart-wrap">
+          <canvas id="chart-component"></canvas>
+        </div>
+      </div>
+
+      <div class="panel chart-panel">
+        <h2>Fault Volume Over Time</h2>
+        <p class="muted">Monthly open-fault count — Nov 2025 to current session.</p>
+        <div class="chart-wrap">
+          <canvas id="chart-trend"></canvas>
+        </div>
+      </div>
+
+      <div class="panel chart-panel">
+        <h2>Severity Breakdown</h2>
+        <p class="muted">Distribution of all records by severity category.</p>
+        <div class="chart-wrap chart-wrap--doughnut">
+          <canvas id="chart-severity"></canvas>
+        </div>
+      </div>
+
+      <div class="panel chart-panel">
+        <h2>Top Buses by Predicted 30-Day Risk</h2>
+        <p class="muted">Risk score derived from fault history and ML service output (TRL-3 stub).</p>
+        <div class="chart-wrap">
+          <canvas id="chart-busrisk"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── Recent records table ──────────────────────────────────────────── -->
+    <section class="panel" style="margin-top: 1rem;">
+      <h2>Recent Records — Sorted by Severity</h2>
+      <p class="muted">Showing up to 8 records, highest severity first.</p>
+      <div class="table-scroll">
+        <table class="records-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Location</th>
+              <th>Type</th>
+              <th>Severity</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recent-tbody">
+            <tr><td colspan="5" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="message-box" class="message-box hidden"></div>
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
