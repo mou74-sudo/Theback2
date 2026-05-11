@@ -5,7 +5,7 @@
  * scanner would trigger in a TRL-6 deployment.
  */
 
-import { getCurrentUser } from "./api.js";
+import { getCurrentUser, moveToolItem } from "./api.js";
 
 const STORAGE_KEY  = "maintenance_items";
 const LOG_KEY      = "tool_movement_log";
@@ -151,13 +151,15 @@ function simpleHash(str) {
 
 // ── Handle checkout ───────────────────────────────────────────────────────────
 async function handleCheckout(itemId) {
-  const user  = getCurrentUser();
+  const user = getCurrentUser();
   const items = loadItems();
   const tool  = items.find(i => i.id === itemId);
   if (!tool || !user) return;
 
   await simulateScan(tool.title);
 
+  // Persist via backend if available, then sync localStorage
+  await moveToolItem(itemId, "checkout");
   tool.status = "missing";
   saveItems(items);
 
@@ -171,19 +173,19 @@ async function handleCheckout(itemId) {
   renderToolBoard();
   renderMovementLog();
 
-  // Dispatch event so main.js can refresh KPIs and list
   document.dispatchEvent(new CustomEvent("toolMoved", { detail: { action: "checkout", toolId: itemId } }));
 }
 
 // ── Handle return ─────────────────────────────────────────────────────────────
 async function handleReturn(itemId) {
-  const user  = getCurrentUser();
+  const user = getCurrentUser();
   const items = loadItems();
   const tool  = items.find(i => i.id === itemId);
   if (!tool || !user) return;
 
   await simulateScan(tool.title);
 
+  await moveToolItem(itemId, "return");
   tool.status = "returned";
   saveItems(items);
 

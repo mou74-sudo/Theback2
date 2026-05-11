@@ -1332,3 +1332,53 @@ body.larger-text .filter-button {
   border-radius: 50%;
   background: currentColor;
 }
+/* ── Print stylesheet ────────────────────────────────────────────────────────
+   Triggered by window.print() from the export button on the details panel.
+   Hides all navigation, renders the selected record as a clean job sheet.
+*/
+@media print {
+  body { background: #fff; color: #000; font-family: sans-serif; }
+
+  .app-header,
+  .filter-panel,
+  .add-panel,
+  .tool-board-panel,
+  .anomaly-panel,
+  .summary-grid,
+  .demo-panel,
+  .role-panel,
+  #item-list,
+  #message-box,
+  #qr-overlay,
+  .a11y-toggles,
+  .print-hide { display: none !important; }
+
+  .content-grid { display: block !important; }
+
+  .details-panel {
+    border: 2px solid #000;
+    padding: 2rem;
+    box-shadow: none;
+    background: #fff;
+    color: #000;
+  }
+
+  .details-panel h2 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+
+  .badge {
+    border: 1px solid #000;
+    color: #000;
+    background: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .primary-button, .secondary-button { display: none !important; }
+
+  .print-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+  }
+}

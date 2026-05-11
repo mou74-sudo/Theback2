@@ -128,9 +128,14 @@ export function renderDetails(item) {
     <label for="inspection-note"><strong>Inspection note</strong></label>
     <textarea id="inspection-note" placeholder="Example: Checked the brake area and confirmed visible wear."></textarea>
 
-    <button class="primary-button" id="confirm-button" data-id="${item.id}">
-      Confirm Inspection
-    </button>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <button class="primary-button" id="confirm-button" data-id="${item.id}">
+        Confirm Inspection
+      </button>
+      <button class="secondary-button print-hide" onclick="window.print()" type="button">
+        Print Job Sheet
+      </button>
+    </div>
 
     <div class="note-list">
       <h3>Previous Notes</h3>

@@ -237,6 +237,7 @@ function updateARLabel(item) {
 
   const record = {
     title: item.title,
+    type: item.type,
     severity: capitalise(item.severity),
     status: capitalise(item.status),
     colour: getSeverityColour(item.severity)
