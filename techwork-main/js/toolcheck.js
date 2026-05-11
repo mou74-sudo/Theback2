@@ -5,7 +5,7 @@
  * scanner would trigger in a TRL-6 deployment.
  */
 
-import { getMaintenanceItems, getCurrentUser } from "./api.js";
+import { getCurrentUser } from "./api.js";
 
 const STORAGE_KEY  = "maintenance_items";
 const LOG_KEY      = "tool_movement_log";
