@@ -5,7 +5,12 @@ const bcrypt  = require("bcryptjs");
 
 const app = express();
 
-const JWT_SECRET = process.env.JWT_SECRET || "techwork-depot-secret-trl3";
+// JWT_SECRET must be set as an environment variable in any deployment.
+// The fallback is a development-only default and must not be used in production.
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required in production.");
+}
+const JWT_SECRET = process.env.JWT_SECRET || "dev-only-do-not-use-in-production";
 
 // Seed users with bcrypt-hashed passwords.
 // All seed accounts use the demo password "password123" hashed with bcrypt cost 10.
@@ -16,7 +21,7 @@ const USERS = [
   { name: "jay.admin",       role: "admin",      hash: "$2b$10$PU71b.6GoqlpljrvXdBi2.008buqndVOyHLT9taeTt3YHy0z6q83u" }
 ];
 
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN || "*" }));
 app.use(express.json());
 
 // ── Seed data ─────────────────────────────────────────────────────────────────

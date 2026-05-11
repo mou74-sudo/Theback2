@@ -173,7 +173,7 @@ async function handleCheckout(itemId) {
     action: "checkout",
     toolTitle: tool.title,
     user: user.name,
-    timestamp: new Date().toLocaleTimeString()
+    timestamp: new Date().toLocaleString()
   });
 
   renderToolBoard();
@@ -199,7 +199,7 @@ async function handleReturn(itemId) {
     action: "return",
     toolTitle: tool.title,
     user: user.name,
-    timestamp: new Date().toLocaleTimeString()
+    timestamp: new Date().toLocaleString()
   });
 
   renderToolBoard();

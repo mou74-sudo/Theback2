@@ -41,7 +41,7 @@ The research question this project addresses is: can a browser-based AR overlay,
 
 ### 1.1 Contributions
 
-This report makes three concrete contributions. First, it integrates a browser-based AR maintenance overlay with an interpretable predictive maintenance pipeline in a single auditable workflow, addressing the integration gap Alam et al. (2025, p. 6) identify as under-explored in current XR maintenance research. Second, it operationalises Rudin's (2019, p. 208) interpretability argument in a depot context by selecting a logistic regression model with documented global SHAP feature importance, rather than defaulting to a black-box ensemble. Third, it ships a working Population Stability Index drift monitor that closes the lifecycle-monitoring gap Myakala et al. (2025) identify in current predictive maintenance deployments. Each contribution is located explicitly in the artefact so the marker can find its evidence.
+This report makes three concrete contributions. First, it integrates a browser-based AR maintenance overlay with an interpretable predictive maintenance pipeline in a single auditable workflow, addressing the integration gap Alam et al. (2025, p. 6) identify as under-explored in current XR maintenance research. Second, it operationalises Rudin's (2019, p. 208) interpretability argument in a depot context by selecting a logistic regression model with documented global SHAP feature importance, rather than defaulting to a black-box ensemble. Third, it implements the Population Stability Index drift-monitoring pattern that closes the lifecycle-monitoring gap Myakala et al. (2025) identify in current predictive maintenance deployments, with a simulated stub at TRL-3 and a documented TRL-6 path to live computation. Each contribution is located explicitly in the artefact so the marker can find its evidence.
 
 ### 1.2 Aims and Objectives
 
@@ -208,7 +208,7 @@ At TRL-3 state persists in an in-memory JavaScript store seeded from a constant 
 
 #### Deployment
 
-The project is deployed on Vercel's free tier. A vercel.json configuration file declares the output directory as techwork-main and rewrites all API paths to the serverless function. The frontend URL is stable and accessible from any browser. Vercel provides TLS 1.3 automatically, satisfying NFR3 without any additional configuration. Secrets are held in environment variables rather than the repository, with a committed .env.example showing which variables are required.
+The project is deployed on Vercel's free tier. A vercel.json configuration file declares the output directory as techwork-main and rewrites all API paths to the serverless function. The frontend URL is stable and accessible from any browser. Vercel provides TLS 1.3 automatically, satisfying NFR3 without any additional configuration. Secrets are held in environment variables rather than the repository, with a committed .env.example showing which variables are required. JWT_SECRET throws a startup error in production if not set, preventing accidental deployment with the development fallback.
 
 ![Figure 6: TRL-6 target deployment topology (top) showing Docker Compose with Nginx, Gunicorn, and MongoDB Atlas, and the planned GitHub Actions CI/CD pipeline (bottom). At TRL-3, the system is deployed as a Vercel serverless function with no Docker layer; the in-memory store replaces MongoDB; and CI is a manual test run rather than an automated pipeline.](figures/image6.png)
 
@@ -242,7 +242,7 @@ The TRL-6 upgrade would replace bcrypt with argon2id (the current Password Hashi
 
 #### Secure communication
 
-TLS 1.3 encrypts all data in transit, provided by Vercel. The API validates JWT on every protected route. Input payloads are validated for required fields and type constraints before reaching the store logic. CORS is not explicitly configured at TRL-3 since the frontend and API share a single Vercel origin. A production deployment behind a custom domain would add a strict CORS allowlist to prevent cross-origin API abuse (OWASP, 2023, item API7).
+TLS 1.3 encrypts all data in transit, provided by Vercel. The API validates JWT on every protected route. Input payloads are validated for required fields and type constraints before reaching the store logic. CORS is configured to accept any origin at TRL-3 (`origin: "*"`) to allow local development from any port without additional setup. The ALLOWED_ORIGIN environment variable restricts this to a specific domain when set; a production deployment would set it to the application's Vercel domain to prevent cross-origin API abuse (OWASP, 2023, item API7).
 
 #### STRIDE threat analysis
 
@@ -308,7 +308,7 @@ The feature vector for each record is severity, component type, bus age, mileage
 
 ![Figure 10: ROC curve for the logistic regression classifier (AUC = 0.926) versus the random-classifier diagonal (AUC = 0.500), confirming genuine discriminative signal despite the synthetic training corpus.](figures/image10.png)
 
-The false negative rate is 16.5 per cent. This is the most operationally costly cell because a missed failure can lead to a vehicle being put into service while unsafe. The threshold could be lowered to reduce false negatives at the cost of false positives, but this trade-off is left for a future stakeholder review with the depot manager.
+The confusion matrix uses a classification threshold of 0.5: records with a predicted failure probability above 0.5 are classified as failures. The false negative rate at this threshold is 16.5 per cent. This is the most operationally costly cell because a missed failure can lead to a vehicle being put into service while unsafe. The threshold could be lowered to reduce false negatives at the cost of false positives, but this trade-off is left for a future stakeholder review with the depot manager.
 
 ![Figure 8: SHAP feature importance — mean absolute SHAP value per feature (logistic regression, LinearExplainer, Lundberg and Lee, 2017). Severity features dominate; component type and bus age provide secondary signal.](figures/image8.png)
 
@@ -318,7 +318,7 @@ SHAP global feature importance is computed via a LinearExplainer applied to the 
 
 #### Drift monitoring
 
-The /health endpoint computes a Population Stability Index on each ping. PSI compares the expected feature distribution at training time against the observed distribution at inference time. A PSI under 0.10 is treated as stable, 0.10 to 0.20 as a warning, and over 0.20 as a retrain trigger. The dashboard displays the live PSI with a colour-coded badge. At TRL-3 the PSI value is simulated. At TRL-6 it would be computed from a rolling window of real predictions using the AutoDrift pattern Myakala et al. (2025) describe, which maintained 91 per cent precision while cutting retraining latency by 37 per cent versus a static schedule.
+The /health endpoint exposes a Population Stability Index field designed to surface distribution drift between the training set and live inference traffic. PSI compares the expected feature distribution at training time against the observed distribution at inference time. A PSI under 0.10 is treated as stable, 0.10 to 0.20 as a warning, and over 0.20 as a retrain trigger. The dashboard displays the live PSI with a colour-coded badge. At TRL-3 the PSI value is simulated with a plausible slowly-varying stub, because the prototype does not accumulate enough live prediction requests to compute a statistically meaningful distribution shift. At TRL-6 it would be computed from a rolling window of real predictions using the AutoDrift pattern Myakala et al. (2025) describe, which maintained 91 per cent precision while cutting retraining latency by 37 per cent versus a static schedule.
 
 #### Dashboard design
 
