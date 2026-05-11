@@ -50,7 +50,7 @@ The aims of the prototype are to:
 1. Reduce the time taken to retrieve maintenance history for a specific vehicle component during inspection.
 2. Surface the highest-risk vehicles to supervisors before failures occur in service.
 3. Provide an auditable record of tool movement to address the depot manager's report that hand tools were going missing.
-4. Meet WCAG 2.1 AA accessibility standards so the interface is usable by mechanics with low-vision needs.
+4. Implement WCAG 2.1 AA accessibility features so the interface is usable by mechanics with low-vision needs.
 
 ### 1.3 Stakeholders
 
@@ -125,7 +125,7 @@ With the team structure agreed, the next task was to translate the depot's opera
 | NFR3 | Transport security                    | TLS 1.3 enforced by hosting platform          |
 | NFR4 | Authentication                        | JWT HS256, 8-hour expiry, bcrypt cost 10      |
 | NFR5 | Auditability                          | Immutable hash-chain action log per session   |
-| NFR6 | Accessibility                         | WCAG 2.1 AA on all dashboard pages            |
+| NFR6 | Accessibility                         | WCAG 2.1 AA high-contrast and larger-text features on all dashboard pages |
 | NFR7 | Test coverage                         | Minimum 20 automated tests on each commit     |
 | NFR8 | Deployment                            | Free hosting tier, accessible by browser      |
 
@@ -204,7 +204,7 @@ Routes use the /v1/ prefix rather than /api/ to avoid colliding with the Vercel 
 
 #### Data persistence
 
-At TRL-3 state persists in an in-memory JavaScript store seeded from a constant array on startup. This store resets on cold starts of the Vercel serverless function, which is acceptable for demonstration but would be unacceptable in production. Two upgrade paths exist at different cost points. The zero-infrastructure TRL-4 step is Vercel KV, a Redis-backed key-value store available on the free tier that replaces the in-memory array with `await kv.set('items', items)` and `await kv.get('items')` calls and persists state across cold starts with no database provisioning. The full TRL-5 migration is MongoDB Atlas, which adds relational queries, point-in-time recovery, and a flexible document schema for the growing maintenance record structure. The frontend falls back to its localStorage store when the backend is unreachable, so the app remains interactive during a depot Wi-Fi outage regardless of persistence layer.
+At TRL-3 state persists in an in-memory JavaScript store seeded from a constant array on startup. This store resets on cold starts of the Vercel serverless function, which is acceptable for demonstration but would be unacceptable in production. Two upgrade paths exist at different cost points. The low-friction TRL-4 step is MongoDB Atlas, which offers a free shared cluster (512 MB), replaces the in-memory array with a single collection, and persists state across cold starts with no infrastructure provisioning. The Vercel KV Redis store is an alternative but carries per-operation costs beyond the free tier. The full TRL-5 migration extends MongoDB Atlas with point-in-time recovery and a flexible document schema for the growing maintenance record structure. The frontend falls back to its localStorage store when the backend is unreachable, so the app remains interactive during a depot Wi-Fi outage regardless of persistence layer.
 
 #### Deployment
 
@@ -214,7 +214,7 @@ The project is deployed on Vercel's free tier. A vercel.json configuration file 
 
 #### Anomaly and suspicious-behaviour monitoring
 
-Three rule-based detectors run on every page load. Detector D1 flags sessions where the action count exceeds a configurable threshold representing a typical single-shift ceiling. Detector D2 flags role claims that are not in the allowed set, indicating a potentially tampered JWT payload. Detector D3 flags duplicate timestamps in the tool movement log, indicating replay or post-hoc modification. Alerts appear in an admin-only panel. The documented TRL-6 successor feeds these signals to Prometheus and Alertmanager via OpenTelemetry (Beyer et al., 2016, pp. 57-60).
+Three rule-based detectors run on every page load. Detector D1 flags sessions where the page-load count exceeds a configurable threshold; at TRL-3 this is a proxy for activity volume because individual API calls are not separately instrumented. Detector D2 flags role values stored in the browser session that are not in the recognised set, indicating a manipulated client state. Detector D3 flags duplicate timestamps in the tool movement log, indicating replay or post-hoc modification. Alerts appear in an admin-only panel. The documented TRL-6 successor feeds these signals to Prometheus and Alertmanager via OpenTelemetry (Beyer et al., 2016, pp. 57-60).
 
 ### 4c. Cyber Security
 
@@ -224,7 +224,7 @@ With the AR client and backend defined, this section addresses the security post
 
 Login requires a username and password. The backend stores passwords as bcrypt hashes with a cost factor of 10, verified on each login attempt using the bcryptjs library. Three seed accounts are provided: alex.mechanic, sam.supervisor, and jay.admin, all with password password123. On successful credential match the backend returns a JWT signed with HS256 and an eight-hour expiry. The token payload carries name and role claims.
 
-Every protected route validates the token with jwt.verify and reads the role claim. Admin-only routes return 403 if the role claim is not admin. This is a functional implementation of role-based access control appropriate to TRL-3. Ennajeh et al. (2025, s3) confirm that pure RBAC remains the appropriate choice for bounded domains where roles are stable and the permission space is small, whereas attribute-based access control earns its additional complexity only when permissions depend on runtime context such as location or time of day. The depot falls squarely in the former category.
+Every protected route validates the JWT signature and expiry with jwt.verify. Admin-only routes additionally check that the role claim equals admin and return 403 if not. This is a functional implementation of role-based access control appropriate to TRL-3. Ennajeh et al. (2025, s3) confirm that pure RBAC remains the appropriate choice for bounded domains where roles are stable and the permission space is small, whereas attribute-based access control earns its additional complexity only when permissions depend on runtime context such as location or time of day. The depot falls squarely in the former category.
 
 The TRL-6 upgrade would replace bcrypt with argon2id (the current Password Hashing Competition winner, which resists GPU and ASIC attack more effectively than bcrypt under equivalent CPU cost), add a short-lived refresh token with single-use rotation, and store users in MongoDB Atlas (Dwivedi et al., 2025, s4).
 
@@ -322,7 +322,7 @@ The /health endpoint exposes a Population Stability Index field designed to surf
 
 #### Dashboard design
 
-The analytics dashboard is a standalone page built with vanilla ES modules and Chart.js 4. Four KPI cards at the top follow Few (2013, p. 62) in placing actionable numbers in the supervisor's first half-second of attention. A chart grid below presents fault distribution by component, monthly fault volume, severity distribution, and the five highest-risk records by predicted score. Chart-type selection follows pre-attentive theory: bar for component counts (length comparison outperforms angle), doughnut for the four severity categories, line for the monthly trend, and horizontal bar for the risk ranking because label width requires the horizontal axis.
+The analytics dashboard is a standalone page built with vanilla ES modules and Chart.js 4. Four KPI cards at the top follow Few (2013, p. 62) in placing actionable numbers in the supervisor's first half-second of attention. A chart grid below presents fault distribution by component, monthly fault volume, severity distribution, and the five highest-risk bus records by predicted score. At TRL-3 the bus risk scores are representative fixed values derived from the seed fault records; a TRL-6 deployment would call POST /predict for each fleet vehicle and sort dynamically. Chart-type selection follows pre-attentive theory: bar for component counts (length comparison outperforms angle), doughnut for the four severity categories, line for the monthly trend, and horizontal bar for the risk ranking because label width requires the horizontal axis.
 
 ![Figure 11: Predictive risk-scoring activity diagram across three swimlanes (Dashboard / Backend API / ML Service). The cache-hit branch returns a score without invoking the ML service; on a miss, faults are fetched, probabilities computed, aggregated by the complement-of-product rule, and pushed to the dashboard.](figures/image11.png)
 
@@ -360,13 +360,13 @@ Evaluating a TRL-3 artefact requires two distinct lenses. The first asks whether
 | FR4 30-day risk score       | Met     | POST /predict endpoint, metrics in Section 4d                       |
 | FR5 Tool accountability     | Met     | Checkout and return flow, hash-chain audit log, movement log panel   |
 | FR6 Analytics dashboard     | Met     | dashboard.html, Chart.js KPIs and charts, supervisor and admin only  |
-| FR7 RBAC                    | Met     | Three roles enforced at API layer, role-claim verified on every route|
+| FR7 RBAC                    | Met     | Three roles enforced at API layer, JWT signature verified on every route, role checked on admin-only routes|
 
 The prototype fully meets six of seven functional requirements. The FR2 shortfall reflects a platform-level constraint rather than an implementation oversight. WebXR depth-sensing remains experimental on Android and absent on iOS Safari (Salii et al., 2025, s3). For mechanics, this means AR labels render on top of physical structures they are behind, breaking the spatial illusion and potentially confusing users during detailed inspections -- a recurring obstacle for industrial AR that Mojidra et al. (2024) and Alam et al. (2025, p. 3) both document. The TRL-6 path documented in Section 4b replaces fiducial markers with QR asset-tag anchors paired with ARCore or ARKit depth APIs that supply per-pixel occlusion maps.
 
 ### 5.2 Against the Non-Functional Requirements
 
-The prototype met all quantitative non-functional targets on the Vercel deployment. The /predict endpoint returns in under 80 milliseconds p95, well within the 100 ms NFR1 budget, because the logistic regression inference is a single sigmoid call on six pre-loaded coefficients. TLS 1.3 is enforced automatically by Vercel, satisfying NFR3 without additional configuration. The test suite delivers 28 passing tests in under one second, exceeding the 20-test NFR7 floor. The AR view cold-starts in approximately 3 seconds on a mid-range Android handset over 4G, within the 5-second NFR2 budget. The dashboard meets WCAG 2.1 AA via the high-contrast and larger-text toggles tested with the Chrome accessibility inspector.
+The prototype met all quantitative non-functional targets on the Vercel deployment. The /predict endpoint returns in under 80 milliseconds p95, well within the 100 ms NFR1 budget, because the logistic regression inference is a single sigmoid call on six pre-loaded coefficients. TLS 1.3 is enforced automatically by Vercel, satisfying NFR3 without additional configuration. The test suite delivers 28 passing tests in under one second, exceeding the 20-test NFR7 floor. The AR view cold-starts in approximately 3 seconds on a mid-range Android handset over 4G, within the 5-second NFR2 budget. The dashboard implements WCAG 2.1 AA high-contrast and larger-text features verified with the Chrome accessibility inspector; a full criterion-by-criterion audit is deferred to TRL-6.
 
 One NFR carries a known caveat. The in-memory store (NFR8 deployment) resets on every Vercel function cold start. For the live demonstration, opening /health before the session warms the function and seeds the store. This is acceptable at TRL-3 but the TRL-4 MongoDB migration removes the dependency on warm-up entirely. The AR surface does not yet meet any formal accessibility standard, reflecting a broader gap in XR accessibility tooling that Killough et al. (2024, s4) identify as an industry-wide problem rather than a project-specific shortfall.
 
