@@ -40,7 +40,20 @@ python3 -m http.server 8080
 # Open http://localhost:8080
 ```
 
-When the backend is running: login issues real JWTs, data persists to `backend/data.json`, and ML predictions use the actual logistic regression endpoint.
+When the backend is running, login issues real JWTs and ML predictions use the live logistic regression endpoint. The backend uses an in-memory store seeded on startup, so writes persist for the lifetime of the process but reset on restart. The frontend falls back to localStorage when the backend is unreachable, so the app stays interactive offline.
+
+### Deploying to Vercel
+
+```bash
+# One-off
+npm install -g vercel
+vercel login
+
+# Deploy
+vercel --prod
+```
+
+`vercel.json` rewrites `/health`, `/auth/*`, `/v1/*`, and `/predict` to the serverless function at `api/index.js`, which mounts the Express app from `backend/app.js`. Set `JWT_SECRET` and (optionally) `ALLOWED_ORIGIN` as Vercel environment variables. The production deployment refuses to start if `JWT_SECRET` is unset.
 
 ---
 
@@ -50,7 +63,7 @@ When the backend is running: login issues real JWTs, data persists to `backend/d
 # From the repo root
 npm install
 npm test               # ML unit tests (15 tests, no server needed)
-npm run test:all       # All tests including backend integration (server must be running)
+npm run test:all       # All 28 tests (15 unit + 13 integration; integration tests boot Express in-process via supertest)
 ```
 
 ---
@@ -120,12 +133,15 @@ techwork-main/       Frontend (ES modules, no build step)
   sw.js              Service worker for offline caching
 
 backend/
-  server.js          Express API (auth, items CRUD, /predict)
-  data.json          Persisted records (auto-created on first run)
+  app.js             Express app (auth, items CRUD, /predict) — exported for serverless
+  server.js          Local dev wrapper around app.js
+
+api/
+  index.js           Vercel serverless entry point, re-exports backend/app.js
 
 tests/
   mlService.test.js  15 unit tests for LR inference and risk banding
-  server.test.js     11 integration tests for the REST API
+  server.test.js     13 integration tests for the REST API (supertest, no port binding)
 
 train_model.py       scikit-learn training script (run once to regenerate coefficients)
 ```

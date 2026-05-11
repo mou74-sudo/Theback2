@@ -21,7 +21,7 @@ Coursework 1 of 2, Group project, 70% weighting, Level 5
 
 **Generative AI use:** basic spelling and grammar correction tools only, per the brief permitted scope.
 
-**Word count (main body, excluding title page and references):** 5,414
+**Word count:** 5,404
 
 ---
 
@@ -93,13 +93,13 @@ Risk was actively monitored throughout. Table 3 records the five principal threa
 | R2 | WebXR depth-sensing API not mature on test devices | High       | High   | Fell back to AR.js fiducial markers that do not depend on depth sensing                | Active, depth occlusion shortfall in FR2     |
 | R3 | Synthetic dataset under-represents long-tail faults| Medium     | High   | Acknowledged honestly, hybrid-data revalidation listed as TRL-6 step                  | Acknowledged in evaluation                  |
 | R4 | Pathways drift apart and fail to integrate         | Medium     | High   | Matrix structure with mid-point integration review, shared API contract agreed early   | Closed W6, integration walkthrough succeeded |
-| R5 | Report exceeds 15-page main-content limit          | High       | Low    | Prose tightening pass at v20, reference list excluded per lecturer clarification       | Closed                                       |
+| R5 | Report exceeds 15-page brief limit                 | High       | Low    | Prose-tightening pass and figure consolidation, no appendix used so all pages count    | Closed                                       |
 
 ---
 
 ## 3. Requirements Analysis and Design
 
-Requirements were gathered through a desk-based approach appropriate to a TRL-3 academic prototype, drawing on three sources cross-checked against each other (Palmarini et al., 2018, p. 218). The DVSA defect-categorisation manual (DVSA, 2024) provided failure modes, the Department for Transport bus statistics (DfT, 2023, p. 14) supplied prevalence and cost data, and recent AR maintenance literature contributed practitioner-reported scenarios. The absence of primary stakeholder data is named as a limitation in Section 5.
+Requirements were gathered through a desk-based approach appropriate to a TRL-3 academic prototype, drawing on three sources cross-checked against each other (Palmarini et al., 2018, p. 218). The DVSA defect-categorisation manual (DVSA, 2024) provided failure modes, the Department for Transport bus statistics (2023, p. 14) supplied prevalence and cost data, and recent AR maintenance literature contributed practitioner-reported scenarios. The absence of primary stakeholder data is named as a limitation in Section 5.
 
 ### 3.1 Functional Requirements
 
@@ -152,7 +152,7 @@ The frontend is a pure ES-module single-page application with no build step, run
 
 The AR client uses two AR.js fiducial markers. The Hiro marker triggers a blue cube overlay for fault records. The Kanji marker triggers a purple cylinder for tool records. Splitting the markers by record type reduces mechanic cognitive load when both record types are visible in the same bay. The marker detection pipeline runs entirely in the browser via WebAssembly, so no server round-trip is required and the AR view stays functional when the depot Wi-Fi drops.
 
-AR labels lack depth awareness at TRL-3 because the WebXR depth API remains experimental on Android and is absent on iOS Safari (Salii et al., 2025, s3). A label for a brake component will thus render over the wheel even when the brake caliper is physically occluded. The TRL-6 path replaces fiducial markers with QR asset-tag anchors paired with ARCore or ARKit depth APIs, which provide per-pixel occlusion maps. Figure 2 shows the complete set of actor roles and use cases bounded by the system.
+AR labels lack depth awareness at TRL-3 because the WebXR depth API remains experimental on Android and is absent on iOS Safari (Salii et al., 2025). A label for a brake component will thus render over the wheel even when the brake caliper is physically occluded. The TRL-6 path replaces fiducial markers with QR asset-tag anchors paired with ARCore or ARKit depth APIs, which provide per-pixel occlusion maps. Figure 2 shows the complete set of actor roles and use cases bounded by the system.
 
 ![Figure 2: Use case diagram showing the four actor roles and primary use cases inside the AR Maintenance Support System boundary.](figures/image2.png)
 
@@ -164,7 +164,7 @@ Mechanics log faults via the Inspect button, which submits to the Express REST e
 
 #### Tool accountability, accessibility, and print
 
-The Tool Board panel handles tool checkout and return. Each record carries a status badge and a role-appropriate action button that fires a simulated QR-scan overlay, and on completion the movement log appends action, tool, user, and timestamp in one transaction (FR5). The dashboard implements WCAG 2.1 AA high-contrast (7:1 ratio) and larger-text (~25%) toggles persisted in localStorage, and all controls are keyboard-navigable. A print-only stylesheet produces a clean single-record job sheet for compliance filing.
+The Tool Board panel handles tool checkout and return. Each record carries a status badge and a role-appropriate action button that fires a simulated QR-scan overlay, and on completion the movement log appends action, tool, user, and timestamp in one transaction (FR5). The dashboard implements WCAG 2.1 AA (W3C, 2018) high-contrast (7:1 ratio) and larger-text (~25%) toggles persisted in localStorage, and all controls are keyboard-navigable. A print-only stylesheet produces a clean single-record job sheet for compliance filing.
 
 ### 4b. Computing: Backend, Integration and Deployment
 
@@ -172,7 +172,7 @@ The Tool Board panel handles tool checkout and return. Each record carries a sta
 
 #### Architecture and rationale
 
-The backend is an Express 4 application on Node.js 22, structured as a shared app module (`backend/app.js`) and a thin server wrapper (`backend/server.js`) for local development. Vercel imports the app via `api/index.js`, serving local and cloud environments from one codebase. Carvalho et al. (2025, s2) recommend modular monoliths for teams at this scale, so the backend is a single process with ML prediction logic embedded as constants from offline Python training.
+The backend is an Express 4 application on Node.js 22, structured as a shared app module (`backend/app.js`) and a thin server wrapper (`backend/server.js`) for local development. Vercel imports the app via `api/index.js`, serving local and cloud environments from one codebase. Carvalho et al. (2025) recommend modular monoliths for teams at this scale, so the backend is a single process with ML prediction logic embedded as constants from offline Python training.
 
 #### REST API contract
 
@@ -213,7 +213,7 @@ Transport infrastructure falls under the UK Cyber Assessment Framework (NCSC, 20
 
 #### Authentication and access control
 
-The backend stores passwords as bcrypt hashes (cost 10) following Provos and Mazières (1999), verified using bcryptjs. Three seed accounts (alex.mechanic, sam.supervisor, jay.admin) use password `password123`. On successful login the backend returns a JWT (Jones et al., 2015) signed with HS256 (8-hour expiry) carrying name and role claims. Every protected route validates the JWT signature and expiry with `jwt.verify`, and admin-only routes additionally check the role claim. Ennajeh et al. (2025, s3) confirm pure RBAC is appropriate for bounded domains with stable roles. The TRL-6 upgrade replaces bcrypt with argon2id, adds refresh token rotation, and moves users to MongoDB Atlas (Dwivedi et al., 2025, s4).
+The backend stores passwords as bcrypt hashes (cost 10) following Provos and Mazières (1999), verified using bcryptjs. Three seed accounts (alex.mechanic, sam.supervisor, jay.admin) use password `password123`. On successful login the backend returns a JWT (Jones et al., 2015) signed with HS256 (8-hour expiry) carrying name and role claims. Every protected route validates the JWT signature and expiry with `jwt.verify`, and admin-only routes additionally check the role claim. Ennajeh et al. (2025) confirm pure RBAC is appropriate for bounded domains with stable roles. The TRL-6 upgrade replaces bcrypt with argon2id, adds refresh token rotation, and moves users to MongoDB Atlas (Dwivedi et al., 2025).
 
 ### Table 7: Role-Permission Matrix
 
@@ -254,11 +254,11 @@ Tests confirm invalid credentials return 401 without revealing username existenc
 
 ML coefficients were trained offline with scikit-learn (Pedregosa et al., 2011) in `train_model.py`, then embedded as constants in `backend/app.js` and `techwork-main/js/mlService.js`. Embedding rather than separating was driven by Vercel's serverless constraint of no persistent Python process on the free tier. The duplication lets the frontend infer when the backend is unreachable.
 
-A synthetic dataset of 5,000 records was generated from statistical distributions calibrated to published UK fleet failure rates. Nieminen et al. (2026, s2) confirm synthetic data is now common in predictive maintenance research, though purely statistical generators under-represent long-tail anomalies (Nieminen et al., 2026, s5), motivating the TRL-4 field validation pilot.
+A synthetic dataset of 5,000 records was generated from statistical distributions calibrated to published UK fleet failure rates. Nieminen et al. (2026) confirm synthetic data is now common in predictive maintenance research, though purely statistical generators under-represent long-tail anomalies (Nieminen et al., 2026), motivating the TRL-4 field validation pilot.
 
 #### Model selection
 
-Two classifiers were evaluated on the 1,250-record holdout: a class-weight-balanced logistic regression, and a random forest ensemble. Logistic regression was selected because it is natively interpretable. Rudin (2019, p. 208) argues that users trust transparent models more than post-hoc explanations, a position supported by Cummins et al. (2024, s3) and Lundberg and Lee (2017, s3). The depot's cost of misclassification is also asymmetric: a false negative puts a failing bus in service, while a false positive costs minutes of mechanic time. Class-weight balancing accepts more false positives to reduce missed failures. Aruna et al. (2025, p. 7) report explainable pipelines produce 30% better user trust and 25% fewer decision errors than black-box equivalents.
+Two classifiers were evaluated on the 1,250-record holdout: a class-weight-balanced logistic regression, and a random forest ensemble. Logistic regression was selected because it is natively interpretable. Rudin (2019, p. 208) argues that users trust transparent models more than post-hoc explanations, a position supported by Cummins et al. (2024) and Lundberg and Lee (2017). The depot's cost of misclassification is also asymmetric: a false negative puts a failing bus in service, while a false positive costs minutes of mechanic time. Class-weight balancing accepts more false positives to reduce missed failures. Aruna et al. (2025, p. 7) report explainable pipelines produce 30% better user trust and 25% fewer decision errors than black-box equivalents.
 
 #### Feature engineering and metrics
 
@@ -277,7 +277,7 @@ The feature vector is: severity (ordinal, mapping to DVSA bands), component type
 
 SHAP global feature importance is computed via a LinearExplainer applied to the test set. The mean absolute SHAP values per feature are visualised on the analytics dashboard. Severity is the dominant feature (mean SHAP value 0.42), with open status as a strong secondary signal (0.28). This ranking mirrors Gawde et al. (2024, p. 9), who identify severity and operational status as the leading predictors in rotating-machinery datasets, suggesting domain-independent validity of these features.
 
-![Figure 8: SHAP feature importance, mean absolute SHAP value per feature (logistic regression, LinearExplainer, Lundberg and Lee, 2017). Severity features dominate, with component type and bus age providing secondary signal.](figures/image8.png)
+![Figure 8: SHAP feature importance, mean absolute SHAP value per feature (logistic regression, LinearExplainer, Lundberg & Lee, 2017). Severity features dominate, with component type and bus age providing secondary signal.](figures/image8.png)
 
 ![Figure 9: Confusion matrix for the logistic regression classifier on 1,250 test samples (class-weight balanced). FN denotes missed critical faults, the high-cost error class. Class-weight balancing accepts more false positives in exchange for reducing missed failures.](figures/image9.png)
 
@@ -315,11 +315,11 @@ Evaluating a TRL-3 artefact requires two lenses: whether the prototype meets the
 | FR6 Analytics dashboard     | Met     | dashboard.html, Chart.js KPIs and charts, supervisor and admin only  |
 | FR7 RBAC                    | Met     | Three roles enforced at API layer, JWT signature verified on every route, role checked on admin-only routes|
 
-Six of seven functional requirements are fully met. The FR2 shortfall reflects a platform constraint: WebXR depth-sensing is experimental on Android and absent on iOS Safari (Salii et al., 2025, s3), so AR labels render over structures they are physically behind. Mojidra et al. (2024) and Alam et al. (2025, p. 3) document this as a recurring industrial AR obstacle. The TRL-6 path replaces fiducial markers with QR asset-tag anchors plus ARCore or ARKit depth APIs.
+Six of seven functional requirements are fully met. The FR2 shortfall reflects a platform constraint: WebXR depth-sensing is experimental on Android and absent on iOS Safari (Salii et al., 2025), so AR labels render over structures they are physically behind. Mojidra et al. (2024) and Alam et al. (2025, p. 3) document this as a recurring industrial AR obstacle. The TRL-6 path replaces fiducial markers with QR asset-tag anchors plus ARCore or ARKit depth APIs.
 
 ### 5.2 Against the Non-Functional Requirements
 
-All quantitative NFR targets are met on Vercel. The `/predict` endpoint returns in under 80 ms p95 (NFR1), 28 tests pass in under a second (NFR7 floor of 20), and the AR view cold-starts in roughly three seconds on mid-range Android over 4G (NFR2). The dashboard implements WCAG 2.1 AA high-contrast and larger-text features verified with the Chrome accessibility inspector, with a full criterion-by-criterion audit deferred to TRL-6. One caveat applies: the in-memory store (NFR8) resets on Vercel cold starts. Opening `/health` warms the function for the demo, and the TRL-4 MongoDB migration removes the warm-up dependency. The AR surface does not yet meet any formal accessibility standard, reflecting an industry-wide XR tooling gap (Killough et al., 2024, s4).
+All quantitative NFR targets are met on Vercel. The `/predict` endpoint returns in under 80 ms p95 (NFR1), 28 tests pass in under a second (NFR7 floor of 20), and the AR view cold-starts in roughly three seconds on mid-range Android over 4G (NFR2). The dashboard implements WCAG 2.1 AA high-contrast and larger-text features verified with the Chrome accessibility inspector, with a full criterion-by-criterion audit deferred to TRL-6. One caveat applies: the in-memory store (NFR8) resets on Vercel cold starts. Opening `/health` warms the function for the demo, and the TRL-4 MongoDB migration removes the warm-up dependency. The AR surface does not yet meet any formal accessibility standard, reflecting an industry-wide XR tooling gap (Killough et al., 2024).
 
 ### 5.3 Comparison with Published Work
 
@@ -335,7 +335,7 @@ Table 11 places the prototype's predictive performance against published studies
 | Cummins et al. (2024)      | Cross-domain      | Median LR baseline   | 0.62  | 0.74  | Our LR substantially above LR median       |
 | Marchand et al. (2025)     | Industrial PM     | Ensemble lifecycle   | 0.69  | 0.79  | Our LR with balanced weights exceeds        |
 
-The prototype's metrics are strong for a logistic regression trained on synthetic data. The performance advantage over the Cummins et al. (2024) LR median (F1 = 0.62) is attributable to class-weight balancing and feature engineering on the synthetic generator. Nieminen et al. (2026, s5) caution that synthetic-data metrics are an upper bound on real-world performance, so the reported figures are a feasibility ceiling rather than a deployment guarantee.
+The prototype's metrics are strong for a logistic regression trained on synthetic data. The performance advantage over the Cummins et al. (2024) LR median (F1 = 0.62) is attributable to class-weight balancing and feature engineering on the synthetic generator. Nieminen et al. (2026) caution that synthetic-data metrics are an upper bound on real-world performance, so the reported figures are a feasibility ceiling rather than a deployment guarantee.
 
 Table 12 below positions the prototype against the four under-explored areas Alam et al. (2025) identify in their systematic review of XR maintenance research.
 
@@ -348,7 +348,7 @@ Table 12 below positions the prototype against the four under-explored areas Ala
 | Field-deployable security for XR          | Partial          | JWT, RBAC, TLS 1.3 in place. MFA and argon2id deferred to TRL-6        |
 | Drift-aware ML lifecycle                  | Acknowledged     | PSI monitor in /health. AutoDrift retraining cadence named as TRL-6 work|
 
-Integrating the AR frontend with the predictive backend fills Alam et al.'s first gap, and surfacing global SHAP importance on the dashboard addresses the interpretability-at-decision-time gap noted by Gawde et al. (2024, p. 9). Two pivots shaped the final design: an ensemble assumption was overturned when logistic regression proved more competitive on operational recall (Cummins et al., 2024, s5), and WebXR markerless tracking was replaced with AR.js fiducial markers after tracking drift under workshop lighting, matching Mojidra et al. (2024).
+Integrating the AR frontend with the predictive backend fills Alam et al.'s first gap, and surfacing global SHAP importance on the dashboard addresses the interpretability-at-decision-time gap noted by Gawde et al. (2024, p. 9). Two pivots shaped the final design: an ensemble assumption was overturned when logistic regression proved more competitive on operational recall (Cummins et al., 2024), and WebXR markerless tracking was replaced with AR.js fiducial markers after tracking drift under workshop lighting, matching Mojidra et al. (2024).
 
 ### 5.4 Sustainability and Ethics
 
@@ -399,58 +399,58 @@ The most valuable next step is field validation. Two months of real depot record
 
 ## References
 
-Alam, S., Petkar, O. and Agarwal, A. (2025) 'Cross-platform AR for industrial maintenance: a systematic review', *IEEE Access*, 13, pp. 1-12.
+Alam, S., Petkar, O., & Agarwal, A. (2025). Cross-platform AR for industrial maintenance: A systematic review. *IEEE Access*, *13*, 1-12.
 
-Aruna, S., Rahman, M. and Chen, L. (2025) 'Explainable AI in safety-critical domains: trust and decision accuracy', *Safety Science*, 181, p. 106418.
+Aruna, S., Rahman, M., & Chen, L. (2025). Explainable AI in safety-critical domains: Trust and decision accuracy. *Safety Science*, *181*, 106418.
 
-Beyer, B., Jones, C., Petoff, J. and Murphy, N.R. (2016) *Site Reliability Engineering: How Google Runs Production Systems*. Sebastopol: O'Reilly Media.
+Beyer, B., Jones, C., Petoff, J., & Murphy, N. R. (2016). *Site reliability engineering: How Google runs production systems*. O'Reilly Media.
 
-Carvalho, L., Ferreira, T. and Santos, P. (2025) 'Modular monoliths versus microservices for small team development', *Journal of Systems and Software*, 209, p. 111930.
+Carvalho, L., Ferreira, T., & Santos, P. (2025). Modular monoliths versus microservices for small team development. *Journal of Systems and Software*, *209*, 111930.
 
-Cummins, N., Schuller, B. and Dunbar, R. (2024) 'Interpretable machine learning for predictive maintenance: a cross-domain survey', *Engineering Applications of Artificial Intelligence*, 132, p. 107922.
+Cummins, N., Schuller, B., & Dunbar, R. (2024). Interpretable machine learning for predictive maintenance: A cross-domain survey. *Engineering Applications of Artificial Intelligence*, *132*, 107922.
 
-Department for Transport (2023) *Annual Bus Statistics: England 2022/23*. London: DfT. Available at: https://www.gov.uk/government/statistics/annual-bus-statistics-england-202223 (Accessed: 4 May 2026).
+Department for Transport. (2023). *Annual bus statistics: England 2022/23*. https://www.gov.uk/government/statistics/annual-bus-statistics-england-202223
 
-Dwivedi, A., Mishra, R. and Tiwari, S. (2025) 'Password hashing for transport-sector IoT: argon2id versus bcrypt under field conditions', *Computers and Security*, 140, p. 103819.
+DVSA. (2024). *Guide to maintaining roadworthiness: Commercial vehicles*. Driver and Vehicle Standards Agency.
 
-DVSA (2024) *Guide to Maintaining Roadworthiness: Commercial Vehicles*. Swansea: Driver and Vehicle Standards Agency.
+Dwivedi, A., Mishra, R., & Tiwari, S. (2025). Password hashing for transport-sector IoT: Argon2id versus bcrypt under field conditions. *Computers and Security*, *140*, 103819.
 
-Ennajeh, M., Boukadi, K. and Maamar, Z. (2025) 'RBAC versus ABAC for IoT: a systematic comparison under bounded permission spaces', *Future Generation Computer Systems*, 154, pp. 44-57.
+Ennajeh, M., Boukadi, K., & Maamar, Z. (2025). RBAC versus ABAC for IoT: A systematic comparison under bounded permission spaces. *Future Generation Computer Systems*, *154*, 44-57.
 
-Few, S. (2013) *Information Dashboard Design: Displaying Data for At-a-Glance Monitoring*. 2nd edn. Burlingame: Analytics Press.
+Few, S. (2013). *Information dashboard design: Displaying data for at-a-glance monitoring* (2nd ed.). Analytics Press.
 
-Gawde, S., Patil, S., Kumar, S. and Kamat, P. (2024) 'Explainable predictive maintenance of industrial machines using XGBoost, SHAP, and vibration signature analysis', *Results in Engineering*, 23, p. 102536.
+Gawde, S., Patil, S., Kumar, S., & Kamat, P. (2024). Explainable predictive maintenance of industrial machines using XGBoost, SHAP, and vibration signature analysis. *Results in Engineering*, *23*, 102536.
 
-Ibrahim, K., Bendiabdellah, A. and Nait-Said, M.Z. (2024) 'In-field predictive maintenance for electric bus battery systems', *Energy Reports*, 11, pp. 5201-5213.
+Ibrahim, K., Bendiabdellah, A., & Nait-Said, M. Z. (2024). In-field predictive maintenance for electric bus battery systems. *Energy Reports*, *11*, 5201-5213.
 
-Jones, M., Bradley, J. and Sakimura, N. (2015) 'JSON Web Token (JWT)', *IETF RFC 7519*. Available at: https://www.rfc-editor.org/rfc/rfc7519 (Accessed: 4 May 2026).
+Jones, M., Bradley, J., & Sakimura, N. (2015). *JSON web token (JWT)* (IETF RFC 7519). Internet Engineering Task Force. https://www.rfc-editor.org/rfc/rfc7519
 
-Killough, R., Kiefer, A. and Langlotz, T. (2024) 'XR accessibility: gaps, guidelines, and the path to inclusive extended reality', *ACM Computing Surveys*, 56(8), pp. 1-38.
+Killough, R., Kiefer, A., & Langlotz, T. (2024). XR accessibility: Gaps, guidelines, and the path to inclusive extended reality. *ACM Computing Surveys*, *56*(8), 1-38.
 
-Lundberg, S.M. and Lee, S.I. (2017) 'A unified approach to interpreting model predictions', *Advances in Neural Information Processing Systems*, 30, pp. 4765-4774.
+Lundberg, S. M., & Lee, S. I. (2017). A unified approach to interpreting model predictions. *Advances in Neural Information Processing Systems*, *30*, 4765-4774.
 
-Marchand, A., Duval, B. and Lemaire, V. (2025) 'Dual-level drift detection with human review gates for industrial predictive maintenance', *Expert Systems with Applications*, 238, p. 121892.
+Marchand, A., Duval, B., & Lemaire, V. (2025). Dual-level drift detection with human review gates for industrial predictive maintenance. *Expert Systems with Applications*, *238*, 121892.
 
-Mojidra, R., Patel, N. and Joshi, M. (2024) 'Markerless AR for civil infrastructure inspection: tracking accuracy under outdoor lighting conditions', *Automation in Construction*, 158, p. 105165.
+Mojidra, R., Patel, N., & Joshi, M. (2024). Markerless AR for civil infrastructure inspection: Tracking accuracy under outdoor lighting conditions. *Automation in Construction*, *158*, 105165.
 
-Myakala, S., Reddy, S. and Nagaraju, A. (2025) 'AutoDrift: automated concept drift detection and retraining for production ML pipelines', *Applied Soft Computing*, 152, p. 111271.
+Myakala, S., Reddy, S., & Nagaraju, A. (2025). AutoDrift: Automated concept drift detection and retraining for production ML pipelines. *Applied Soft Computing*, *152*, 111271.
 
-National Cyber Security Centre (NCSC) (2023) *Cyber Assessment Framework v3.2*. London: NCSC. Available at: https://www.ncsc.gov.uk/collection/cyber-assessment-framework (Accessed: 4 May 2026).
+NCSC. (2023). *Cyber Assessment Framework v3.2*. National Cyber Security Centre. https://www.ncsc.gov.uk/collection/cyber-assessment-framework
 
-Nieminen, H., Isomursu, M. and Ronkainen, J. (2026) 'Synthetic data in predictive maintenance: a systematic review of 86 studies', *Reliability Engineering and System Safety*, 245, p. 110013.
+Nieminen, H., Isomursu, M., & Ronkainen, J. (2026). Synthetic data in predictive maintenance: A systematic review of 86 studies. *Reliability Engineering and System Safety*, *245*, 110013.
 
-OWASP (2023) *OWASP API Security Top 10*. OWASP Foundation. Available at: https://owasp.org/www-project-api-security/ (Accessed: 4 May 2026).
+OWASP. (2023). *OWASP API security top 10*. OWASP Foundation. https://owasp.org/www-project-api-security/
 
-Palmarini, R., Erkoyuncu, J.A., Roy, R. and Torabmostaedi, H. (2018) 'A systematic review of augmented reality applications in maintenance', *Robotics and Computer-Integrated Manufacturing*, 49, pp. 215-228.
+Palmarini, R., Erkoyuncu, J. A., Roy, R., & Torabmostaedi, H. (2018). A systematic review of augmented reality applications in maintenance. *Robotics and Computer-Integrated Manufacturing*, *49*, 215-228.
 
-Pedregosa, F. et al. (2011) 'Scikit-learn: Machine learning in Python', *Journal of Machine Learning Research*, 12, pp. 2825-2830.
+Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos, A., Cournapeau, D., Brucher, M., Perrot, M., & Duchesnay, E. (2011). Scikit-learn: Machine learning in Python. *Journal of Machine Learning Research*, *12*, 2825-2830.
 
-Provos, N. and Mazières, D. (1999) 'A future-adaptable password scheme', *USENIX Annual Technical Conference, FREENIX Track*, pp. 81-91.
+Provos, N., & Mazières, D. (1999). A future-adaptable password scheme. In *USENIX Annual Technical Conference, FREENIX Track* (pp. 81-91). USENIX Association.
 
-Rudin, C. (2019) 'Stop explaining black box machine learning models for high stakes decisions and use interpretable models instead', *Nature Machine Intelligence*, 1(5), pp. 206-215.
+Rudin, C. (2019). Stop explaining black box machine learning models for high stakes decisions and use interpretable models instead. *Nature Machine Intelligence*, *1*(5), 206-215.
 
-Salii, A., Martinez, J. and Grubert, J. (2025) 'WebXR depth API: cross-browser support landscape and occlusion fidelity benchmarks', *Frontiers in Virtual Reality*, 6, p. 1344782.
+Salii, A., Martinez, J., & Grubert, J. (2025). WebXR depth API: Cross-browser support landscape and occlusion fidelity benchmarks. *Frontiers in Virtual Reality*, *6*, 1344782.
 
-Shostack, A. (2014) *Threat Modeling: Designing for Security*. Indianapolis: John Wiley and Sons.
+Shostack, A. (2014). *Threat modeling: Designing for security*. John Wiley & Sons.
 
-W3C (2018) *Web Content Accessibility Guidelines (WCAG) 2.1*. W3C Recommendation, 5 June. Available at: https://www.w3.org/TR/WCAG21/ (Accessed: 4 May 2026).
+W3C. (2018). *Web Content Accessibility Guidelines (WCAG) 2.1* [W3C Recommendation]. World Wide Web Consortium. https://www.w3.org/TR/WCAG21/
