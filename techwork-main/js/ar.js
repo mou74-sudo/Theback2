@@ -7,6 +7,7 @@ import {
 
 import { showMessage } from "./ui.js";
 import { initAccessibility } from "./accessibility.js";
+import { predictMaintenance } from "./mlService.js";
 
 let items = [];
 let selectedItem = null;
@@ -149,6 +150,11 @@ function renderDetailCard(item) {
 
     <p>${item.notes}</p>
 
+    <!-- ML risk injection. Matches s4e Step 4 of the report. -->
+    <div class="ml-risk-card" id="ar-ml-risk">
+      <div class="ml-risk-loading">Fetching ML risk score from /predict...</div>
+    </div>
+
     <label for="ar-note"><strong>Inspection note</strong></label>
     <textarea id="ar-note" placeholder="Example: Confirmed the marker location and checked the component."></textarea>
 
@@ -156,6 +162,37 @@ function renderDetailCard(item) {
       Confirm Inspection
     </button>
   `;
+
+  // Fire and forget the prediction call. Renders into the placeholder above.
+  injectMLRisk(item);
+}
+
+// Calls the simulated ML service and renders the result inside the detail card.
+async function injectMLRisk(item) {
+  const mount = document.getElementById("ar-ml-risk");
+  if (!mount) return;
+
+  try {
+    const result = await predictMaintenance(item);
+    const bandClass = result.band.toLowerCase();
+
+    mount.innerHTML = `
+      <div class="ml-risk-header">
+        <span class="ml-risk-dot ${bandClass}"></span>
+        <strong>ML Risk: ${result.score}%, ${result.band.toUpperCase()}</strong>
+      </div>
+      <div class="ml-risk-meta">
+        Model: ${result.model}
+        &nbsp;|&nbsp; F1: ${result.f1}
+        &nbsp;|&nbsp; AUC: ${result.auc}
+      </div>
+      <div class="ml-risk-meta muted">
+        30-day failure probability for this record.
+      </div>
+    `;
+  } catch (err) {
+    mount.innerHTML = `<div class="ml-risk-loading">ML service unavailable.</div>`;
+  }
 }
 
 function getSeverityColour(severity) {

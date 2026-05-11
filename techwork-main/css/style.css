@@ -1149,3 +1149,186 @@ body.larger-text .filter-button {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* =========================
+   ML risk card in the AR detail panel
+========================= */
+
+.ml-risk-card {
+  margin: 0.8rem 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(167, 139, 250, 0.10);
+  border: 1px solid rgba(167, 139, 250, 0.45);
+}
+
+.ml-risk-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.ml-risk-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.ml-risk-dot.low      { background: var(--safe); }
+.ml-risk-dot.medium   { background: var(--warning); }
+.ml-risk-dot.high     { background: var(--danger); }
+.ml-risk-dot.critical { background: #7f1d1d; }
+
+.ml-risk-meta {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.ml-risk-loading {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* =========================
+   Drift (PSI) badge in the ML status bar
+========================= */
+
+.ml-drift-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border: 1px solid var(--border);
+}
+
+.ml-drift-badge.stable {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.ml-drift-badge.warning {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.ml-drift-badge.retrain {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fecaca;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* =========================
+   Two-column secondary chart row
+========================= */
+
+.chart-grid.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 900px) {
+  .chart-grid.two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   Confusion matrix grid
+========================= */
+
+.confusion-grid {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.cm-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+  font-weight: bold;
+}
+
+.cm-label-top {
+  grid-column: 2 / span 2;
+}
+
+.cm-label-side {
+  writing-mode: horizontal-tb;
+}
+
+.cm-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 0.6rem;
+  border-radius: 10px;
+  text-align: center;
+  min-height: 75px;
+}
+
+.cm-cell strong {
+  font-size: 1.6rem;
+  display: block;
+}
+
+.cm-cell span {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.cm-tp { background: rgba(34, 197, 94, 0.18);  border: 1px solid rgba(34, 197, 94, 0.5); }
+.cm-tn { background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.5); }
+.cm-fp { background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.5); }
+.cm-fn { background: rgba(239, 68, 68, 0.20);  border: 1px solid rgba(239, 68, 68, 0.5); }
+
+/* =========================
+   Audit-log hash chain integrity badge
+========================= */
+
+.audit-chain-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-bottom: 0.7rem;
+  border: 1px solid var(--border);
+}
+
+.audit-chain-ok {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+.audit-chain-broken {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fecaca;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.audit-chain-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}

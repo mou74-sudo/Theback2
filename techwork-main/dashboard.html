@@ -43,6 +43,11 @@
       <div class="ml-metric">AUC-ROC: <strong>0.773</strong></div>
       <div class="ml-metric">p95 latency: <strong id="ml-latency">38 ms</strong></div>
       <div class="ml-metric">Last ping: <strong id="ml-last-ping">—</strong></div>
+      <div class="ml-metric">
+        Drift (PSI):
+        <strong id="ml-drift-value">—</strong>
+        <span class="ml-drift-badge" id="ml-drift-badge">stable</span>
+      </div>
     </section>
 
     <!-- ── High Risk Alerts panel ─────────────────────────────────────────── -->
@@ -107,6 +112,25 @@
         <div class="chart-wrap">
           <canvas id="chart-busrisk"></canvas>
         </div>
+      </div>
+
+    </section>
+
+    <!-- ── Model explainability row (SHAP + Confusion matrix) ─────────────── -->
+    <section class="chart-grid two-col">
+
+      <div class="panel chart-panel">
+        <h2>SHAP Feature Importance</h2>
+        <p class="muted">Mean |SHAP value| per feature (LinearExplainer). Severity dominates the prediction; component type and bus age are secondary.</p>
+        <div class="chart-wrap">
+          <canvas id="chart-shap"></canvas>
+        </div>
+      </div>
+
+      <div class="panel chart-panel">
+        <h2>Confusion Matrix (n=1,250)</h2>
+        <p class="muted">Logistic Regression, class-weight balanced. FN cell shows missed critical faults (high-cost errors).</p>
+        <div class="confusion-grid" id="confusion-matrix"></div>
       </div>
 
     </section>

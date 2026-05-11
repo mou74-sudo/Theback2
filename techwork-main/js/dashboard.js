@@ -1,5 +1,6 @@
 import { getMaintenanceItems, getCurrentUser, logoutUser } from "./api.js";
 import { initAccessibility } from "./accessibility.js";
+import { SHAP_FEATURES, CONFUSION_MATRIX, getDriftStatus } from "./mlService.js";
 
 let charts = {};
 let mlPingTimer = null;
@@ -177,6 +178,71 @@ function renderBusRiskChart() {
   });
 }
 
+// SHAP feature importance chart (Figure 8 in the report).
+// Horizontal bar so long feature names fit comfortably.
+function renderShapChart() {
+  destroy("shap");
+
+  const ctx = document.getElementById("chart-shap").getContext("2d");
+  charts["shap"] = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: SHAP_FEATURES.map(f => f.feature),
+      datasets: [{
+        label: "Mean |SHAP value|",
+        data: SHAP_FEATURES.map(f => f.importance),
+        backgroundColor: "#a78bfa",
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: "#94a3b8" }, grid: { color: "#1e293b" }, beginAtZero: true, max: 0.5 },
+        y: { ticks: { color: "#94a3b8" }, grid: { color: "#1e293b" } }
+      }
+    }
+  });
+}
+
+// Confusion matrix grid (Figure 9 in the report).
+// Plain DOM rather than canvas, since the 2x2 layout is clearer as a table.
+function renderConfusionMatrix() {
+  const mount = document.getElementById("confusion-matrix");
+  if (!mount) return;
+
+  const cm = CONFUSION_MATRIX;
+
+  mount.innerHTML = `
+    <div class="cm-label cm-label-top">Predicted</div>
+    <div></div>
+    <div class="cm-label cm-label-pos">Failure</div>
+    <div class="cm-label cm-label-neg">Healthy</div>
+
+    <div class="cm-label cm-label-side cm-label-pos">Actual<br>Failure</div>
+    <div class="cm-cell cm-tp">
+      <strong>${cm.truePositive}</strong>
+      <span>True Positive</span>
+    </div>
+    <div class="cm-cell cm-fn">
+      <strong>${cm.falseNegative}</strong>
+      <span>False Negative (missed)</span>
+    </div>
+
+    <div class="cm-label cm-label-side cm-label-neg">Actual<br>Healthy</div>
+    <div class="cm-cell cm-fp">
+      <strong>${cm.falsePositive}</strong>
+      <span>False Positive</span>
+    </div>
+    <div class="cm-cell cm-tn">
+      <strong>${cm.trueNegative}</strong>
+      <span>True Negative</span>
+    </div>
+  `;
+}
+
 // High Risk Alerts panel.
 // Picks every bus with a risk score at or above 60 and renders one row
 // per bus. Sorted highest first so the worst case is visible immediately.
@@ -243,6 +309,21 @@ function pingMLService() {
   label.textContent   = isUp ? "ML Service: Live" : "ML Service: Reconnecting...";
   latency.textContent = isUp ? `${latencyMs} ms` : "n/a";
   last.textContent    = now;
+
+  // Refresh the PSI drift readout each ping.
+  updateDriftIndicator();
+}
+
+// Update the drift (PSI) value and its colour-coded state badge.
+function updateDriftIndicator() {
+  const valueEl = document.getElementById("ml-drift-value");
+  const badgeEl = document.getElementById("ml-drift-badge");
+  if (!valueEl || !badgeEl) return;
+
+  const drift = getDriftStatus();
+  valueEl.textContent  = drift.psi.toFixed(3);
+  badgeEl.textContent  = drift.state;
+  badgeEl.className    = `ml-drift-badge ${drift.state}`;
 }
 
 // Start the ping loop. Runs once immediately, then every 5 seconds.
@@ -296,6 +377,8 @@ async function loadDashboard() {
   renderTrendChart(items);
   renderSeverityChart(items);
   renderBusRiskChart();
+  renderShapChart();
+  renderConfusionMatrix();
   renderRecentTable(items);
   startMLPing();
 }
