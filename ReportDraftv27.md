@@ -161,9 +161,9 @@ AR labels lack depth awareness at TRL-3. A label for a brake component will rend
 
 Mechanics log faults by tapping the Inspect button beside any record, typing a note, and confirming. The form submits to the Express REST endpoint. If the network drops, the service worker temporarily caches the app shell and the localStorage fallback store continues to accept writes. Records added offline are not automatically synced when the network returns. A queued sync mechanism is recorded as a TRL-4 backlog item.
 
-![Figure 3: Fault-capture activity diagram across three swimlanes (Mechanic / Backend API / Real-time Channel). The error path is highlighted. The optional photo branch merges back into the main flow before submission.](figures/image3.jpg)
+![Figure 3: Fault-capture activity diagram across three swimlanes (Mechanic / Backend API / Real-time Channel) showing the TRL-6 target architecture with MongoDB persistence and Socket.IO push. At TRL-3, the Backend API swimlane is implemented as an Express serverless function and the real-time channel is replaced by a page-reload event.](figures/image3.jpg)
 
-*Figure 3: Fault-capture activity diagram showing the end-to-end fault logging flow.*
+*Figure 3: Fault-capture activity diagram (TRL-6 target architecture; TRL-3 uses Express serverless and localStorage).*
 
 #### Tool accountability
 
@@ -179,9 +179,9 @@ A print-only stylesheet hides the navigation, dashboard, and tool board when the
 
 ### 4b. Computing: Backend, Integration and Deployment
 
-![Figure 4: Class diagram of the system organised into three layers — service classes, domain models, and infrastructure. Solid associations carry multiplicity labels; dashed arrows mark service-to-domain dependencies.](figures/image4.png)
+![Figure 4: Class diagram of the TRL-6 target system organised into three layers — service classes (blue), domain models (green), and infrastructure (purple). At TRL-3, AuthService, FaultService, and ToolService are implemented as Express route handlers in a single app.js module; SocketIOEmitter is replaced by a localStorage event bus.](figures/image4.png)
 
-*Figure 4: Class diagram showing service, domain, and infrastructure layers.*
+*Figure 4: Class diagram (TRL-6 target; TRL-3 collapses services into Express route handlers).*
 
 #### Architecture and rationale
 
@@ -218,9 +218,9 @@ At TRL-3 state persists in an in-memory JavaScript store seeded from a constant 
 
 The project is deployed on Vercel's free tier. A vercel.json configuration file declares the output directory as techwork-main and rewrites all API paths to the serverless function. The frontend URL is stable and accessible from any browser. Vercel provides TLS 1.3 automatically, satisfying NFR3 without any additional configuration. Secrets are held in environment variables rather than the repository, with a committed .env.example showing which variables are required.
 
-![Figure 6: Deployment topology (top) and CI/CD pipeline (bottom). The TRL-3 runtime is shown on the left; the dashed TRL-6 extension box documents the cloud deployment steps that are designed but not implemented at TRL-3.](figures/image6.png)
+![Figure 6: TRL-6 target deployment topology (top) showing Docker Compose with Nginx, Gunicorn, and MongoDB Atlas, and the planned GitHub Actions CI/CD pipeline (bottom). At TRL-3, the system is deployed as a Vercel serverless function with no Docker layer; the in-memory store replaces MongoDB; and CI is a manual test run rather than an automated pipeline.](figures/image6.png)
 
-*Figure 6: Deployment topology and CI/CD pipeline.*
+*Figure 6: TRL-6 target deployment topology and CI/CD pipeline (TRL-3 uses Vercel serverless and in-memory store).*
 
 #### Anomaly and suspicious-behaviour monitoring
 
@@ -275,9 +275,9 @@ Tests confirmed that invalid credentials return 401 without revealing whether th
 
 ### 4d. Data Analytics
 
-![Figure 7: Data analytics pipeline from raw fault records through feature engineering, model training, evaluation, SHAP explainability, Flask API serving, and dashboard visualisation.](figures/image7.png)
+![Figure 7: Data analytics pipeline from raw fault records through feature engineering, logistic regression training, SHAP explainability, API serving, and dashboard visualisation. The TRL-6 target serving layer is a Flask microservice; at TRL-3 the trained coefficients are embedded as constants in the Express backend and the dashboard is a vanilla ES module page using Chart.js.](figures/image7.png)
 
-*Figure 7: End-to-end data analytics pipeline.*
+*Figure 7: Data analytics pipeline (TRL-6 target uses Flask microservice; TRL-3 embeds coefficients in Express).*
 
 #### Pipeline architecture and rationale
 
