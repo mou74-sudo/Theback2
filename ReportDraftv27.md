@@ -54,8 +54,7 @@ The aims of the prototype are to:
 
 ### 1.3 Stakeholders
 
-Primary stakeholders are mechanics, who use the AR view daily, and supervisors, who monitor the analytics dashboard. Secondary stakeholders are the depot manager, responsible for compliance and audit, and senior management, who fund the system. The brief positioned all five group members as independent contributors with named ownership of subsystems, described in Section 6.
-
+Primary stakeholders are mechanics, who use the AR view daily, and supervisors, who monitor the analytics dashboard. Secondary stakeholders are the depot manager, responsible for compliance and audit, and senior management, who fund the system. 
 ---
 
 ## 2. Project Planning and Team Organisation
@@ -145,13 +144,13 @@ The requirements in Section 3 drove four parallel development tracks. This secti
 
 The frontend is a pure ES-module single-page application with no build step. ES modules are loaded directly by the browser via `<script type="module">`, which means the project can run on any static host without a bundler or Node installation. Chart.js 4 is loaded from a CDN for the analytics dashboard. A-Frame 1.4 plus AR.js 3.4 power the AR view.
 
-The decision to use vanilla ES modules rather than a React bundle was deliberate. Alam et al. (2025, p. 5) note that device heterogeneity is the biggest barrier to XR adoption in industrial maintenance. A framework-free client avoids the build toolchain complexity that frequently prevents depot IT teams from self-hosting updates. The tradeoff is that some UI state management is more verbose than it would be in a component framework, but at TRL-3 the clarity benefit outweighs the verbosity cost.
+The decision to use vanilla ES modules rather than a React bundle was deliberate. Alam et al. (2025, p. 5) note that device heterogeneity is the biggest barrier to XR adoption in industrial maintenance. A framework-free client avoids the build toolchain complexity that frequently prevents depot IT teams from self-hosting updates. The tradeoff is increased verbosity in state management, which is acceptable at TRL-3 given the benefit of zero build toolchain dependency for depot IT teams.
 
 #### AR marker flow
 
 The AR client uses two AR.js fiducial markers. The Hiro marker triggers a blue cube overlay for fault records. The Kanji marker triggers a purple cylinder for tool records. Splitting the markers by record type deliberately reduces mechanic cognitive load when both record types are visible in the same bay. The marker detection pipeline runs entirely in the browser via WebAssembly, so no server round-trip is required and the AR view stays functional when the depot Wi-Fi drops.
 
-AR labels lack depth awareness at TRL-3. A label for a brake component will render over the wheel even when the brake caliper is physically occluded. The WebXR depth API remains experimental on Android and is absent on iOS Safari (Salii et al., 2025, s3). The documented TRL-6 path replaces fiducial markers with QR asset-tag anchors paired with ARCore or ARKit depth APIs, which provide per-pixel occlusion maps.
+AR labels lack depth awareness at TRL-3 because the WebXR depth API remains experimental on Android and is absent on iOS Safari (Salii et al., 2025, s3). A label for a brake component will thus render over the wheel even when the brake caliper is physically occluded. The TRL-6 path replaces fiducial markers with QR asset-tag anchors paired with ARCore or ARKit depth APIs, which provide per-pixel occlusion maps. Figure 2 shows the complete set of actor roles and use cases bounded by the system.
 
 ![Figure 2: Use case diagram showing the four actor roles and primary use cases inside the AR Maintenance Support System boundary.](figures/image2.png)
 
@@ -273,13 +272,13 @@ The analytics engine runs as constants embedded in the backend rather than a liv
 
 #### Synthetic dataset and the data trade-off
 
-Because the team lacked real operational data from the depot, it generated a synthetic dataset of 5,000 records using statistical distributions calibrated to published UK fleet failure rates. Nieminen et al. (2026, s2) review 86 peer-reviewed predictive maintenance papers published since 2020 and report that synthetic data use is now common across four families: data augmentation, generative models, physics-based simulation, and hybrid approaches. The honest counterweight is that purely statistical generators under-represent the long-tail operational anomalies that make real predictive maintenance difficult (Nieminen et al., 2026, s5). This limitation is acknowledged and named as the principal motivation for the TRL-4 field validation pilot.
+Because the team lacked real operational data from the depot, it generated a synthetic dataset of 5,000 records using statistical distributions calibrated to published UK fleet failure rates. Nieminen et al. (2026, s2) confirm that synthetic data is now common in predictive maintenance research, though purely statistical generators under-represent the long-tail operational anomalies that make real deployments difficult (Nieminen et al., 2026, s5). This limitation motivates the TRL-4 field validation pilot.
 
 #### Model selection: logistic regression versus alternatives
 
 Two candidate classifiers were evaluated on a 1,250-record held-out test split: a logistic regression with class weights balanced, and a random forest ensemble. The logistic regression was selected for three converging reasons.
 
-First, logistic regression is natively interpretable. A supervisor can see directly how each feature contributes to a risk score. Research consistently shows users trust transparent models more than post-hoc explanations of black-box models (Rudin, 2019, p. 208. Cummins et al., 2024, s3. Lundberg and Lee, 2017, s3).
+First, logistic regression is natively interpretable. A supervisor can see directly how each feature contributes to a risk score. Rudin (2019, p. 208) argues that users trust transparent models more than post-hoc explanations of black-box models, a finding supported across safety-critical domains by Cummins et al. (2024, s3) and Lundberg and Lee (2017, s3).
 
 Second, the operational cost of misclassification in this depot is highly asymmetric. A false negative means a failing bus enters service, which is a passenger safety risk. A false positive means a healthy bus receives an unnecessary inspection, costing minutes of mechanic time. Maximising recall at the cost of some precision is the correct operational trade-off. The class-weight balanced training explicitly accepts more false positives to reduce missed failures. Aruna et al. (2025, p. 7) put a quantitative floor under this argument: in simulated safety-critical environments, explainable AI pipelines produced a 30 per cent improvement in user trust and a 25 per cent reduction in decision errors compared with black-box equivalents.
 
@@ -304,17 +303,17 @@ The feature vector for each record is severity, component type, bus age, mileage
 | Recall    | 0.835 |
 | Precision | 0.865 |
 
+#### SHAP explainability
+
+SHAP global feature importance is computed via a LinearExplainer applied to the test set. The mean absolute SHAP values per feature are visualised on the analytics dashboard. Severity is the dominant feature (mean SHAP value 0.42), with open status as a strong secondary signal (0.28). This ranking mirrors Gawde et al. (2024, p. 9), who identify severity and operational status as the leading predictors in rotating-machinery datasets, suggesting domain-independent validity of these features.
+
+![Figure 8: SHAP feature importance — mean absolute SHAP value per feature (logistic regression, LinearExplainer, Lundberg and Lee, 2017). Severity features dominate; component type and bus age provide secondary signal.](figures/image8.png)
+
 ![Figure 9: Confusion matrix for the logistic regression classifier on 1,250 test samples (class-weight balanced). FN = missed critical faults — the high-cost error class. Class-weight balancing deliberately accepts more false positives to reduce missed failures.](figures/image9.png)
 
 ![Figure 10: ROC curve for the logistic regression classifier (AUC = 0.926) versus the random-classifier diagonal (AUC = 0.500), confirming genuine discriminative signal despite the synthetic training corpus.](figures/image10.png)
 
 The confusion matrix uses a classification threshold of 0.5: records with a predicted failure probability above 0.5 are classified as failures. The false negative rate at this threshold is 16.5 per cent. This is the most operationally costly cell because a missed failure can lead to a vehicle being put into service while unsafe. The threshold could be lowered to reduce false negatives at the cost of false positives, but this trade-off is left for a future stakeholder review with the depot manager.
-
-![Figure 8: SHAP feature importance — mean absolute SHAP value per feature (logistic regression, LinearExplainer, Lundberg and Lee, 2017). Severity features dominate; component type and bus age provide secondary signal.](figures/image8.png)
-
-#### SHAP explainability
-
-SHAP global feature importance is computed via a LinearExplainer applied to the test set. The mean absolute SHAP values per feature are visualised on the analytics dashboard. Severity is the dominant feature (mean SHAP value 0.42), with open status as a strong secondary signal (0.28). This ranking aligns with Gawde et al. (2024, p. 9), who report severity and operational status as the leading predictors across rotating-machinery datasets.
 
 #### Drift monitoring
 
@@ -384,7 +383,7 @@ Before reflecting qualitatively, Table 11 places the prototype's predictive perf
 | Cummins et al. (2024)      | Cross-domain      | Median LR baseline   | 0.62  | 0.74  | Our LR substantially above LR median       |
 | Marchand et al. (2025)     | Industrial PM     | Ensemble lifecycle   | 0.69  | 0.79  | Our LR with balanced weights exceeds        |
 
-The prototype's metrics are strong for a logistic regression trained on synthetic data. The performance advantage over the Cummins et al. (2024) LR median (F1 = 0.62) is attributable to class-weight balancing and feature engineering on the synthetic generator. Nieminen et al. (2026, s5) caution that synthetic-data metrics are an upper bound on real-world performance, and that caveat applies directly here. The reported figures should be treated as a feasibility ceiling rather than a deployment guarantee until the model is retrained on real records.
+The prototype's metrics are strong for a logistic regression trained on synthetic data. The performance advantage over the Cummins et al. (2024) LR median (F1 = 0.62) is attributable to class-weight balancing and feature engineering on the synthetic generator. Nieminen et al. (2026, s5) caution that synthetic-data metrics are an upper bound on real-world performance; the reported figures are a feasibility ceiling, not a deployment guarantee.
 
 Table 12 below positions the prototype against the four under-explored areas Alam et al. (2025) identify in their systematic review of XR maintenance research.
 
@@ -420,7 +419,7 @@ Eighteen of twenty task attempts were completed (90.0 per cent). The two intenti
 
 Two usability findings emerged from the walkthrough. First, the Add Maintenance Record form fires required-field validation only on submission rather than inline, causing at least one re-entry cycle during Izzy's session. A TRL-4 iteration would add live field-level hints to remove this friction. Second, mechanics have no route to fleet-level risk priority from their role view, so a supervisor must communicate bus dispatch priority verbally. A read-only risk indicator visible to all roles, without exposing the full analytics panel, would close this gap. Both findings are recorded as open backlog items.
 
-The study's principal limitation is sample size. With three simulated participants, no statistical inference can be drawn and task times were not recorded to a precision that supports quantitative comparison. Findings should be read as structured expert walkthroughs that surface interaction patterns rather than representative usability benchmarks. A within-subjects trial with real depot mechanics is the minimum evidence base required before any usability claim is made at TRL-5 (Palmarini et al., 2018, p. 221).
+The walkthrough was a structured expert assessment (n=5) and should not be treated as a representative usability benchmark; no statistical inference can be drawn. A within-subjects trial with real depot mechanics is required before any usability claim advances beyond TRL-4 (Palmarini et al., 2018, p. 221).
 
 ### 5.6 TRL Assessment
 
