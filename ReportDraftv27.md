@@ -74,6 +74,10 @@ The three-pathway split across Computing, Cyber Security, and Data Analytics was
 | WP4 | Data Analytics           | Shiar          | Synthetic dataset, LR model, SHAP, dashboard charts            |
 | WP5 | Integration and Testing  | Mikku          | Tool board, audit log, anomaly panel, Jest test suite          |
 
+![Figure 1: Project Gantt chart showing work packages across eight swimlanes (Kickoff, Planning and Design, Artefact Core, Computing, Cyber Security, Data Analytics, Report, Submission) plotted against the 23 April to 12 May 2026 sprint window.](figures/image1.png)
+
+*Figure 1: Project Gantt chart across eight swimlanes and the three-week sprint window.*
+
 ### Table 2: Key Milestones
 
 | Period   | Milestone                                                              |
@@ -149,9 +153,17 @@ Two AR.js fiducial markers are configured. The Hiro marker triggers a blue cube 
 
 AR labels lack depth awareness at TRL-3. A label for a brake component will render over the wheel even when the brake caliper is physically occluded. The WebXR depth API remains experimental on Android and is absent on iOS Safari (Salii et al., 2025, s3). The documented TRL-6 path replaces fiducial markers with QR asset-tag anchors paired with ARCore or ARKit depth APIs, which provide per-pixel occlusion maps.
 
+![Figure 2: Use case diagram showing the four actor roles and primary use cases inside the AR Maintenance Support System boundary.](figures/image2.png)
+
+*Figure 2: Use case diagram showing actor roles and primary use cases.*
+
 #### Fault capture and offline resilience
 
 Mechanics log faults by tapping the Inspect button beside any record, typing a note, and confirming. The form submits to the Express REST endpoint. If the network drops, the service worker temporarily caches the app shell and the localStorage fallback store continues to accept writes. Records added offline are not automatically synced when the network returns. A queued sync mechanism is recorded as a TRL-4 backlog item.
+
+![Figure 3: Fault-capture activity diagram across three swimlanes (Mechanic / Backend API / Real-time Channel). The error path is highlighted. The optional photo branch merges back into the main flow before submission.](figures/image3.jpg)
+
+*Figure 3: Fault-capture activity diagram showing the end-to-end fault logging flow.*
 
 #### Tool accountability
 
@@ -166,6 +178,10 @@ The dashboard targets WCAG 2.1 AA as a design constraint. Two switchable themes 
 A print-only stylesheet hides the navigation, dashboard, and tool board when the user triggers the Print Job Sheet button. What prints is a clean single-record job sheet suitable for clipping into a depot paper file. This was added in response to feedback during internal walkthroughs that some inspections still need a paper record for compliance.
 
 ### 4b. Computing: Backend, Integration and Deployment
+
+![Figure 4: Class diagram of the system organised into three layers — service classes, domain models, and infrastructure. Solid associations carry multiplicity labels; dashed arrows mark service-to-domain dependencies.](figures/image4.png)
+
+*Figure 4: Class diagram showing service, domain, and infrastructure layers.*
 
 #### Architecture and rationale
 
@@ -190,6 +206,10 @@ Routes use the /v1/ prefix rather than /api/ to avoid colliding with the Vercel 
 | POST   | /v1/reset              | Reset the in-memory store to seed data               | Bearer, admin |
 | POST   | /predict               | Return 30-day failure probability and risk band      | Bearer        |
 
+![Figure 5: Entity-relationship diagram of the six core data entities. Primary keys are underlined, foreign keys are marked FK, and Crow's Foot notation indicates cardinality.](figures/image5.png)
+
+*Figure 5: Entity-relationship diagram of the core data model.*
+
 #### Data persistence
 
 At TRL-3 state persists in an in-memory JavaScript store seeded from a constant array on startup. This store resets on cold starts of the Vercel serverless function, which is acceptable for demonstration purposes but would be unacceptable in production. The obvious TRL-4 step is a MongoDB Atlas migration, which would replace the in-memory array with a collection and add point-in-time recovery. The frontend falls back to its localStorage store when the backend is unreachable, so the app remains interactive during a depot Wi-Fi outage.
@@ -197,6 +217,10 @@ At TRL-3 state persists in an in-memory JavaScript store seeded from a constant 
 #### Deployment
 
 The project is deployed on Vercel's free tier. A vercel.json configuration file declares the output directory as techwork-main and rewrites all API paths to the serverless function. The frontend URL is stable and accessible from any browser. Vercel provides TLS 1.3 automatically, satisfying NFR3 without any additional configuration. Secrets are held in environment variables rather than the repository, with a committed .env.example showing which variables are required.
+
+![Figure 6: Deployment topology (top) and CI/CD pipeline (bottom). The TRL-3 runtime is shown on the left; the dashed TRL-6 extension box documents the cloud deployment steps that are designed but not implemented at TRL-3.](figures/image6.png)
+
+*Figure 6: Deployment topology and CI/CD pipeline.*
 
 #### Anomaly and suspicious-behaviour monitoring
 
@@ -251,6 +275,10 @@ Tests confirmed that invalid credentials return 401 without revealing whether th
 
 ### 4d. Data Analytics
 
+![Figure 7: Data analytics pipeline from raw fault records through feature engineering, model training, evaluation, SHAP explainability, Flask API serving, and dashboard visualisation.](figures/image7.png)
+
+*Figure 7: End-to-end data analytics pipeline.*
+
 #### Pipeline architecture and rationale
 
 The analytics engine runs as constants embedded in the backend rather than a live Python microservice. The decision to embed rather than separate was driven by the Vercel serverless constraint: a Python process cannot persist alongside a Node.js function on the free tier. The ML coefficients were trained offline using scikit-learn in train_model.py, then copied into backend/app.js and techwork-main/js/mlService.js. This duplication means the frontend can still produce a prediction when the backend is unreachable, using the same sigmoid arithmetic.
@@ -282,14 +310,19 @@ The feature vector for each record is severity, component type, bus age, mileage
 | Recall    | 0.835 |
 | Precision | 0.865 |
 
-**Figure 1.** Confusion matrix for the trained model on 1,250 test samples.
+![Figure 9: Confusion matrix for the logistic regression classifier on 1,250 test samples (class-weight balanced). FN = missed critical faults — the high-cost error class. Class-weight balancing deliberately accepts more false positives to reduce missed failures.](figures/image9.png)
 
-|                  | Predicted Failure | Predicted Healthy |
-|------------------|-------------------|-------------------|
-| Actual Failure   | 563 (TP)          | 111 (FN)          |
-| Actual Healthy   | 88  (FP)          | 488 (TN)          |
+*Figure 9: Confusion matrix — logistic regression on 1,250 test samples.*
+
+![Figure 10: ROC curve for the logistic regression classifier (AUC = 0.926) versus the random-classifier diagonal (AUC = 0.500), confirming genuine discriminative signal despite the synthetic training corpus.](figures/image10.png)
+
+*Figure 10: ROC curve for the logistic regression classifier.*
 
 The false negative rate is 16.5 per cent. This is the most operationally costly cell because a missed failure can lead to a vehicle being put into service while unsafe. The threshold could be lowered to reduce false negatives at the cost of false positives, but this trade-off is left for a future stakeholder review with the depot manager.
+
+![Figure 8: SHAP feature importance — mean absolute SHAP value per feature (logistic regression, LinearExplainer, Lundberg and Lee, 2017). Severity features dominate; component type and bus age provide secondary signal.](figures/image8.png)
+
+*Figure 8: SHAP feature importance for the logistic regression classifier.*
 
 #### SHAP explainability
 
@@ -302,6 +335,10 @@ A Population Stability Index is computed on each /health ping. PSI compares the 
 #### Dashboard design
 
 The analytics dashboard is a standalone page built with vanilla ES modules and Chart.js 4. Four KPI cards at the top follow Few (2013, p. 62) in placing actionable numbers in the supervisor's first half-second of attention. A chart grid below presents fault distribution by component, monthly fault volume, severity distribution, and the five highest-risk records by predicted score. Chart-type selection follows pre-attentive theory: bar for component counts (length comparison outperforms angle), doughnut for the four severity categories, line for the monthly trend, and horizontal bar for the risk ranking because label width requires the horizontal axis.
+
+![Figure 11: Predictive risk-scoring activity diagram across three swimlanes (Dashboard / Backend API / ML Service). The cache-hit branch returns a score without invoking the ML service; on a miss, faults are fetched, probabilities computed, aggregated by the complement-of-product rule, and pushed to the dashboard.](figures/image11.png)
+
+*Figure 11: Predictive risk-scoring activity diagram showing the cache-hit and cache-miss paths.*
 
 ### 4e. Integration Walkthrough
 
