@@ -21,7 +21,7 @@ Coursework 1 of 2, Group project, 70% weighting, Level 5
 
 **Generative AI use:** basic spelling and grammar correction tools only, per the brief permitted scope.
 
-**Word count (main body, excluding title page and references):** 5,557
+**Word count (main body, excluding title page and references):** 5,414
 
 ---
 
@@ -41,7 +41,7 @@ The research question this project addresses is: can a browser-based AR overlay,
 
 ### 1.1 Contributions
 
-This report makes three concrete contributions. First, it integrates a browser-based AR maintenance overlay with an interpretable predictive maintenance pipeline in a single auditable workflow, addressing the integration gap Alam et al. (2025, p. 6) identify as under-explored in current XR maintenance research. Second, it operationalises Rudin's (2019, p. 208) interpretability argument by selecting a logistic regression model with documented global SHAP feature importance, rather than a black-box ensemble. Third, it implements a Population Stability Index drift-monitoring pattern (simulated at TRL-3, with a documented TRL-6 path) that closes the lifecycle-monitoring gap Myakala et al. (2025) identify.
+This report makes three concrete contributions. It integrates a browser-based AR maintenance overlay with an interpretable predictive maintenance pipeline in a single auditable workflow, addressing the integration gap Alam et al. (2025, p. 6) identify as under-explored in current XR maintenance research. It also operationalises Rudin's (2019, p. 208) interpretability argument by selecting a logistic regression model with documented global SHAP feature importance rather than a black-box ensemble. The third contribution is a Population Stability Index drift-monitoring pattern (simulated at TRL-3, with a documented TRL-6 path) that closes the lifecycle-monitoring gap Myakala et al. (2025) identify.
 
 ### 1.2 Aims and Objectives
 
@@ -99,9 +99,13 @@ Risk was actively monitored throughout. Table 3 records the five principal threa
 
 ## 3. Requirements Analysis and Design
 
-Requirements were gathered through a desk-based approach appropriate to a TRL-3 academic prototype, drawing on three sources cross-checked against each other (Palmarini et al., 2018, p. 218): the DVSA defect-categorisation manual (DVSA, 2024) for failure modes; the Department for Transport bus statistics for prevalence and cost (DfT, 2023, p. 14); and recent AR maintenance literature for practitioner-reported scenarios. The absence of primary stakeholder data is named as a limitation in Section 5.
+Requirements were gathered through a desk-based approach appropriate to a TRL-3 academic prototype, drawing on three sources cross-checked against each other (Palmarini et al., 2018, p. 218). The DVSA defect-categorisation manual (DVSA, 2024) provided failure modes, the Department for Transport bus statistics (DfT, 2023, p. 14) supplied prevalence and cost data, and recent AR maintenance literature contributed practitioner-reported scenarios. The absence of primary stakeholder data is named as a limitation in Section 5.
 
-### Table 4: Functional Requirements
+### 3.1 Functional Requirements
+
+Table 4 lists the seven functional requirements with their MoSCoW priority bands.
+
+**Table 4: Functional Requirements**
 
 | ID  | Requirement                                                                  | Priority |
 |-----|------------------------------------------------------------------------------|----------|
@@ -113,7 +117,11 @@ Requirements were gathered through a desk-based approach appropriate to a TRL-3 
 | FR6 | Dashboard view showing KPIs, risk list, and recent fault feed                | Must     |
 | FR7 | Role-based access: mechanic, supervisor, admin                               | Must     |
 
-### Table 5: Non-Functional Requirements
+### 3.2 Non-Functional Requirements
+
+Table 5 sets eight measurable non-functional targets.
+
+**Table 5: Non-Functional Requirements**
 
 | ID   | Requirement                           | Target                                        |
 |------|---------------------------------------|-----------------------------------------------|
@@ -138,11 +146,11 @@ The TRL-3 build does not include real telemetry ingestion, OAuth federation with
 
 #### Client stack
 
-The frontend is a pure ES-module single-page application with no build step, running on any static host. Chart.js 4 is loaded from a CDN; A-Frame 1.4 plus AR.js 3.4 power the AR view. The framework-free choice avoids build toolchain complexity that prevents depot IT teams from self-hosting updates (Alam et al., 2025, p. 5). The tradeoff is verbosity in state management, acceptable at TRL-3 given zero toolchain dependency.
+The frontend is a pure ES-module single-page application with no build step, running on any static host. Chart.js 4 is loaded from a CDN, and A-Frame 1.4 plus AR.js 3.4 power the AR view. The framework-free choice avoids build toolchain complexity that prevents depot IT teams from self-hosting updates (Alam et al., 2025, p. 5). The tradeoff is verbosity in state management, acceptable at TRL-3 given zero toolchain dependency.
 
 #### AR marker flow
 
-The AR client uses two AR.js fiducial markers. The Hiro marker triggers a blue cube overlay for fault records. The Kanji marker triggers a purple cylinder for tool records. Splitting the markers by record type deliberately reduces mechanic cognitive load when both record types are visible in the same bay. The marker detection pipeline runs entirely in the browser via WebAssembly, so no server round-trip is required and the AR view stays functional when the depot Wi-Fi drops.
+The AR client uses two AR.js fiducial markers. The Hiro marker triggers a blue cube overlay for fault records. The Kanji marker triggers a purple cylinder for tool records. Splitting the markers by record type reduces mechanic cognitive load when both record types are visible in the same bay. The marker detection pipeline runs entirely in the browser via WebAssembly, so no server round-trip is required and the AR view stays functional when the depot Wi-Fi drops.
 
 AR labels lack depth awareness at TRL-3 because the WebXR depth API remains experimental on Android and is absent on iOS Safari (Salii et al., 2025, s3). A label for a brake component will thus render over the wheel even when the brake caliper is physically occluded. The TRL-6 path replaces fiducial markers with QR asset-tag anchors paired with ARCore or ARKit depth APIs, which provide per-pixel occlusion maps. Figure 2 shows the complete set of actor roles and use cases bounded by the system.
 
@@ -150,21 +158,21 @@ AR labels lack depth awareness at TRL-3 because the WebXR depth API remains expe
 
 #### Fault capture and offline resilience
 
-Mechanics log faults via the Inspect button, which submits to the Express REST endpoint. If the network drops, the service worker caches the app shell and the localStorage fallback store accepts writes; a queued sync mechanism for offline records is a TRL-4 backlog item.
+Mechanics log faults via the Inspect button, which submits to the Express REST endpoint. If the network drops, the service worker caches the app shell and the localStorage fallback store accepts writes. A queued sync mechanism for offline records is a TRL-4 backlog item.
 
 ![Figure 3: Fault-capture activity diagram across three swimlanes (Mechanic / Backend API / Real-time Channel) showing the TRL-6 target architecture with MongoDB persistence and Socket.IO push. At TRL-3, the Backend API swimlane is implemented as an Express serverless function and the real-time channel is replaced by a page-reload event.](figures/image3.jpg)
 
 #### Tool accountability, accessibility, and print
 
-The Tool Board panel handles tool checkout and return. Each record carries a status badge and a role-appropriate action button that fires a simulated QR-scan overlay; on completion the movement log appends action, tool, user, and timestamp in one transaction (FR5). The dashboard implements WCAG 2.1 AA high-contrast (7:1 ratio) and larger-text (~25%) toggles persisted in localStorage; all controls are keyboard-navigable. A print-only stylesheet produces a clean single-record job sheet for compliance filing.
+The Tool Board panel handles tool checkout and return. Each record carries a status badge and a role-appropriate action button that fires a simulated QR-scan overlay, and on completion the movement log appends action, tool, user, and timestamp in one transaction (FR5). The dashboard implements WCAG 2.1 AA high-contrast (7:1 ratio) and larger-text (~25%) toggles persisted in localStorage, and all controls are keyboard-navigable. A print-only stylesheet produces a clean single-record job sheet for compliance filing.
 
 ### 4b. Computing: Backend, Integration and Deployment
 
-![Figure 4: Class diagram of the TRL-6 target system organised into three layers — service classes (blue), domain models (green), and infrastructure (purple). At TRL-3, AuthService, FaultService, and ToolService are implemented as Express route handlers in a single app.js module; SocketIOEmitter is replaced by a localStorage event bus.](figures/image4.png)
+![Figure 4: Class diagram of the TRL-6 target system organised into three layers: service classes (blue), domain models (green), and infrastructure (purple). At TRL-3, AuthService, FaultService, and ToolService are implemented as Express route handlers in a single app.js module, and SocketIOEmitter is replaced by a localStorage event bus.](figures/image4.png)
 
 #### Architecture and rationale
 
-The backend is an Express 4 application on Node.js 22, structured as a shared app module (`backend/app.js`) and a thin server wrapper (`backend/server.js`) for local development. Vercel imports the app via `api/index.js`, serving local and cloud environments from one codebase. Carvalho et al. (2025, s2) recommend modular monoliths for teams at this scale; the backend is a single process with ML prediction logic embedded as constants from offline Python training.
+The backend is an Express 4 application on Node.js 22, structured as a shared app module (`backend/app.js`) and a thin server wrapper (`backend/server.js`) for local development. Vercel imports the app via `api/index.js`, serving local and cloud environments from one codebase. Carvalho et al. (2025, s2) recommend modular monoliths for teams at this scale, so the backend is a single process with ML prediction logic embedded as constants from offline Python training.
 
 #### REST API contract
 
@@ -187,17 +195,17 @@ Routes use the /v1/ prefix rather than /api/ to avoid colliding with the Vercel 
 
 #### Data persistence
 
-State persists in an in-memory JavaScript store seeded from a constant array, which resets on Vercel cold starts — acceptable for demonstration but not production. The TRL-4 upgrade is MongoDB Atlas (free 512 MB shared cluster), replacing the array with a single collection and persisting across cold starts. The frontend falls back to localStorage when the backend is unreachable, so the app remains interactive during Wi-Fi outages.
+State persists in an in-memory JavaScript store seeded from a constant array, which resets on Vercel cold starts. This is acceptable for demonstration but not for production. The TRL-4 upgrade is MongoDB Atlas (free 512 MB shared cluster), replacing the array with a single collection and persisting across cold starts. The frontend falls back to localStorage when the backend is unreachable, so the app remains interactive during Wi-Fi outages.
 
 #### Deployment
 
-The project is deployed on Vercel's free tier. `vercel.json` rewrites all API paths to the serverless function and Vercel provides TLS 1.3 automatically, satisfying NFR3. Secrets are held in environment variables; JWT_SECRET throws a startup error in production if unset.
+The project is deployed on Vercel's free tier. `vercel.json` rewrites all API paths to the serverless function and Vercel provides TLS 1.3 automatically, satisfying NFR3. Secrets are held in environment variables, and JWT_SECRET throws a startup error in production if unset.
 
-![Figure 6: TRL-6 target deployment topology (top) showing Docker Compose with Nginx, Gunicorn, and MongoDB Atlas, and the planned GitHub Actions CI/CD pipeline (bottom). At TRL-3, the system is deployed as a Vercel serverless function with no Docker layer; the in-memory store replaces MongoDB; and CI is a manual test run rather than an automated pipeline.](figures/image6.png)
+![Figure 6: TRL-6 target deployment topology (top) showing Docker Compose with Nginx, Gunicorn, and MongoDB Atlas, and the planned GitHub Actions CI/CD pipeline (bottom). At TRL-3, the system is deployed as a Vercel serverless function with no Docker layer, the in-memory store replaces MongoDB, and CI is a manual test run rather than an automated pipeline.](figures/image6.png)
 
 #### Anomaly and suspicious-behaviour monitoring
 
-Three rule-based detectors run on every page load. Detector D1 flags sessions where the page-load count exceeds a configurable threshold; at TRL-3 this is a proxy for activity volume because individual API calls are not separately instrumented. Detector D2 flags role values stored in the browser session that are not in the recognised set, indicating a manipulated client state. Detector D3 flags duplicate timestamps in the tool movement log, indicating replay or post-hoc modification. Alerts appear in an admin-only panel. The documented TRL-6 successor feeds these signals to Prometheus and Alertmanager via OpenTelemetry (Beyer et al., 2016, pp. 57-60).
+Three rule-based detectors run on every page load. Detector D1 flags sessions where the page-load count exceeds a configurable threshold. At TRL-3 this acts as a proxy for activity volume because individual API calls are not separately instrumented. Detector D2 flags role values stored in the browser session that are not in the recognised set, indicating a manipulated client state. Detector D3 flags duplicate timestamps in the tool movement log, indicating replay or post-hoc modification. Alerts appear in an admin-only panel. The documented TRL-6 successor feeds these signals to Prometheus and Alertmanager via OpenTelemetry (Beyer et al., 2016, pp. 57-60).
 
 ### 4c. Cyber Security
 
@@ -205,7 +213,7 @@ Transport infrastructure falls under the UK Cyber Assessment Framework (NCSC, 20
 
 #### Authentication and access control
 
-The backend stores passwords as bcrypt hashes (cost 10), verified using bcryptjs. Three seed accounts (alex.mechanic, sam.supervisor, jay.admin) use password `password123`. On successful login the backend returns a JWT signed with HS256 (8-hour expiry) carrying name and role claims. Every protected route validates the JWT signature and expiry with `jwt.verify`; admin-only routes additionally check the role claim. Ennajeh et al. (2025, s3) confirm pure RBAC is appropriate for bounded domains with stable roles. The TRL-6 upgrade replaces bcrypt with argon2id, adds refresh token rotation, and moves users to MongoDB Atlas (Dwivedi et al., 2025, s4).
+The backend stores passwords as bcrypt hashes (cost 10) following Provos and Mazières (1999), verified using bcryptjs. Three seed accounts (alex.mechanic, sam.supervisor, jay.admin) use password `password123`. On successful login the backend returns a JWT (Jones et al., 2015) signed with HS256 (8-hour expiry) carrying name and role claims. Every protected route validates the JWT signature and expiry with `jwt.verify`, and admin-only routes additionally check the role claim. Ennajeh et al. (2025, s3) confirm pure RBAC is appropriate for bounded domains with stable roles. The TRL-6 upgrade replaces bcrypt with argon2id, adds refresh token rotation, and moves users to MongoDB Atlas (Dwivedi et al., 2025, s4).
 
 ### Table 7: Role-Permission Matrix
 
@@ -240,21 +248,21 @@ Tests confirm invalid credentials return 401 without revealing username existenc
 
 ### 4d. Data Analytics
 
-![Figure 7: Data analytics pipeline from raw fault records through feature engineering, logistic regression training, SHAP explainability, API serving, and dashboard visualisation. The TRL-6 target serving layer is a Flask microservice; at TRL-3 the trained coefficients are embedded as constants in the Express backend and the dashboard is a vanilla ES module page using Chart.js.](figures/image7.png)
+![Figure 7: Data analytics pipeline from raw fault records through feature engineering, logistic regression training, SHAP explainability, API serving, and dashboard visualisation. The TRL-6 target serving layer is a Flask microservice. At TRL-3 the trained coefficients are embedded as constants in the Express backend and the dashboard is a vanilla ES module page using Chart.js.](figures/image7.png)
 
 #### Pipeline and data
 
-ML coefficients were trained offline with scikit-learn in `train_model.py`, then embedded as constants in `backend/app.js` and `techwork-main/js/mlService.js`. Embedding rather than separating was driven by Vercel's serverless constraint (no persistent Python process on the free tier); the duplication lets the frontend infer when the backend is unreachable.
+ML coefficients were trained offline with scikit-learn (Pedregosa et al., 2011) in `train_model.py`, then embedded as constants in `backend/app.js` and `techwork-main/js/mlService.js`. Embedding rather than separating was driven by Vercel's serverless constraint of no persistent Python process on the free tier. The duplication lets the frontend infer when the backend is unreachable.
 
 A synthetic dataset of 5,000 records was generated from statistical distributions calibrated to published UK fleet failure rates. Nieminen et al. (2026, s2) confirm synthetic data is now common in predictive maintenance research, though purely statistical generators under-represent long-tail anomalies (Nieminen et al., 2026, s5), motivating the TRL-4 field validation pilot.
 
 #### Model selection
 
-Two classifiers were evaluated on the 1,250-record holdout: a class-weight-balanced logistic regression, and a random forest ensemble. Logistic regression was selected because it is natively interpretable — Rudin (2019, p. 208) argues users trust transparent models more than post-hoc explanations, supported by Cummins et al. (2024, s3) and Lundberg and Lee (2017, s3) — and because the depot's cost of misclassification is asymmetric: a false negative puts a failing bus in service, while a false positive costs minutes of mechanic time. Class-weight balancing accepts more false positives to reduce missed failures. Aruna et al. (2025, p. 7) report explainable pipelines produce 30% better user trust and 25% fewer decision errors than black-box equivalents.
+Two classifiers were evaluated on the 1,250-record holdout: a class-weight-balanced logistic regression, and a random forest ensemble. Logistic regression was selected because it is natively interpretable. Rudin (2019, p. 208) argues that users trust transparent models more than post-hoc explanations, a position supported by Cummins et al. (2024, s3) and Lundberg and Lee (2017, s3). The depot's cost of misclassification is also asymmetric: a false negative puts a failing bus in service, while a false positive costs minutes of mechanic time. Class-weight balancing accepts more false positives to reduce missed failures. Aruna et al. (2025, p. 7) report explainable pipelines produce 30% better user trust and 25% fewer decision errors than black-box equivalents.
 
 #### Feature engineering and metrics
 
-The feature vector is: severity (ordinal, mapping to DVSA bands), component type (six categories, DVSA failure-rate differential), bus age and mileage (proxies for cumulative wear; depot-average defaults at TRL-3, fleet-register read at TRL-4), days since last service (inspection-interval risk per Palmarini et al., 2018, p. 217), and open status (escalation predictor). Numeric features were standardised with StandardScaler; categoricals one-hot encoded with drop-first, yielding 18 columns. The model achieved the following metrics on the 1,250-record holdout:
+The feature vector is: severity (ordinal, mapping to DVSA bands), component type (six categories, DVSA failure-rate differential), bus age and mileage (proxies for cumulative wear, taken as depot-average defaults at TRL-3 and from the fleet register at TRL-4), days since last service (inspection-interval risk per Palmarini et al., 2018, p. 217), and open status (escalation predictor). Numeric features were standardised with StandardScaler, and categoricals were one-hot encoded with drop-first, yielding 18 columns. The model achieved the following metrics on the 1,250-record holdout:
 
 ### Table 9: Model Performance Metrics
 
@@ -269,9 +277,9 @@ The feature vector is: severity (ordinal, mapping to DVSA bands), component type
 
 SHAP global feature importance is computed via a LinearExplainer applied to the test set. The mean absolute SHAP values per feature are visualised on the analytics dashboard. Severity is the dominant feature (mean SHAP value 0.42), with open status as a strong secondary signal (0.28). This ranking mirrors Gawde et al. (2024, p. 9), who identify severity and operational status as the leading predictors in rotating-machinery datasets, suggesting domain-independent validity of these features.
 
-![Figure 8: SHAP feature importance — mean absolute SHAP value per feature (logistic regression, LinearExplainer, Lundberg and Lee, 2017). Severity features dominate; component type and bus age provide secondary signal.](figures/image8.png)
+![Figure 8: SHAP feature importance, mean absolute SHAP value per feature (logistic regression, LinearExplainer, Lundberg and Lee, 2017). Severity features dominate, with component type and bus age providing secondary signal.](figures/image8.png)
 
-![Figure 9: Confusion matrix for the logistic regression classifier on 1,250 test samples (class-weight balanced). FN = missed critical faults — the high-cost error class. Class-weight balancing deliberately accepts more false positives to reduce missed failures.](figures/image9.png)
+![Figure 9: Confusion matrix for the logistic regression classifier on 1,250 test samples (class-weight balanced). FN denotes missed critical faults, the high-cost error class. Class-weight balancing accepts more false positives in exchange for reducing missed failures.](figures/image9.png)
 
 ![Figure 10: ROC curve for the logistic regression classifier (AUC = 0.926) versus the random-classifier diagonal (AUC = 0.500), confirming genuine discriminative signal despite the synthetic training corpus.](figures/image10.png)
 
@@ -279,13 +287,13 @@ The confusion matrix uses a classification threshold of 0.5: records with a pred
 
 #### Drift monitoring and dashboard
 
-The `/health` endpoint exposes a Population Stability Index field designed to surface distribution drift. PSI under 0.10 is stable, 0.10–0.20 a warning, over 0.20 a retrain trigger. At TRL-3 the value is a simulated stub; at TRL-6 it would be computed from a rolling window of real predictions following the AutoDrift pattern (Myakala et al., 2025), which maintained 91% precision while cutting retraining latency by 37% versus a static schedule. The standalone analytics dashboard uses Chart.js 4 with four KPI cards (Few, 2013, p. 62) and a chart grid covering fault distribution, monthly volume, severity breakdown, and the five highest-risk buses (fixed TRL-3 values; dynamic `/predict` calls at TRL-6).
+The `/health` endpoint exposes a Population Stability Index field designed to surface distribution drift. PSI under 0.10 is stable, 0.10–0.20 a warning, over 0.20 a retrain trigger. At TRL-3 the value is a simulated stub. At TRL-6 it would be computed from a rolling window of real predictions following the AutoDrift pattern (Myakala et al., 2025), which maintained 91% precision while cutting retraining latency by 37% versus a static schedule. The standalone analytics dashboard uses Chart.js 4 with four KPI cards (Few, 2013, p. 62) and a chart grid covering fault distribution, monthly volume, severity breakdown, and the five highest-risk buses (fixed TRL-3 values, with dynamic `/predict` calls at TRL-6).
 
-![Figure 11: Predictive risk-scoring activity diagram across three swimlanes (Dashboard / Backend API / ML Service). The cache-hit branch returns a score without invoking the ML service; on a miss, faults are fetched, probabilities computed, aggregated by the complement-of-product rule, and pushed to the dashboard.](figures/image11.png)
+![Figure 11: Predictive risk-scoring activity diagram across three swimlanes (Dashboard / Backend API / ML Service). The cache-hit branch returns a score without invoking the ML service. On a cache miss, faults are fetched, probabilities computed, aggregated by the complement-of-product rule, and pushed to the dashboard.](figures/image11.png)
 
 ### 4e. Integration Walkthrough
 
-The integrated prototype is reproducible with a browser, a printed Hiro marker, and the Vercel URL. **Step 1 (Auth):** mechanic logs in as `alex.mechanic`; RBAC hides admin and anomaly controls. **Step 2 (Selection):** the high-risk filter is applied and a critical brake caliper fault selected. **Step 3 (AR):** AR.js detects the Hiro marker (~200 ms) and A-Frame renders an overlay with title and severity badge. **Step 4 (ML):** the AR client posts to `/predict` and the overlay displays the returned probability with F1/AUC context, within the 100 ms NFR1 budget. **Step 5 (Confirm):** an inspection note is appended and the dashboard recalculates on reload.
+The integrated prototype is reproducible with a browser, a printed Hiro marker, and the Vercel URL. **Step 1 (Auth):** mechanic logs in as `alex.mechanic`, and RBAC hides admin and anomaly controls. **Step 2 (Selection):** the high-risk filter is applied and a critical brake caliper fault selected. **Step 3 (AR):** AR.js detects the Hiro marker (~200 ms) and A-Frame renders an overlay with title and severity badge. **Step 4 (ML):** the AR client posts to `/predict` and the overlay displays the returned probability with F1/AUC context, within the 100 ms NFR1 budget. **Step 5 (Confirm):** an inspection note is appended and the dashboard recalculates on reload.
 
 ---
 
@@ -307,11 +315,11 @@ Evaluating a TRL-3 artefact requires two lenses: whether the prototype meets the
 | FR6 Analytics dashboard     | Met     | dashboard.html, Chart.js KPIs and charts, supervisor and admin only  |
 | FR7 RBAC                    | Met     | Three roles enforced at API layer, JWT signature verified on every route, role checked on admin-only routes|
 
-Six of seven functional requirements are fully met. The FR2 shortfall reflects a platform constraint: WebXR depth-sensing is experimental on Android and absent on iOS Safari (Salii et al., 2025, s3), so AR labels render over structures they are physically behind — a recurring industrial AR obstacle documented by Mojidra et al. (2024) and Alam et al. (2025, p. 3). The TRL-6 path replaces fiducial markers with QR asset-tag anchors plus ARCore/ARKit depth APIs.
+Six of seven functional requirements are fully met. The FR2 shortfall reflects a platform constraint: WebXR depth-sensing is experimental on Android and absent on iOS Safari (Salii et al., 2025, s3), so AR labels render over structures they are physically behind. Mojidra et al. (2024) and Alam et al. (2025, p. 3) document this as a recurring industrial AR obstacle. The TRL-6 path replaces fiducial markers with QR asset-tag anchors plus ARCore or ARKit depth APIs.
 
 ### 5.2 Against the Non-Functional Requirements
 
-All quantitative NFR targets are met on Vercel: `/predict` returns in under 80 ms p95 (NFR1); 28 tests pass in under a second (NFR7 floor of 20); the AR view cold-starts in ~3 s on mid-range Android over 4G (NFR2); the dashboard implements WCAG 2.1 AA high-contrast and larger-text features verified with the Chrome accessibility inspector, with a full criterion-by-criterion audit deferred to TRL-6. One caveat: the in-memory store (NFR8) resets on Vercel cold starts; opening `/health` warms the function for the demo, and the TRL-4 MongoDB migration removes the warm-up dependency. The AR surface does not yet meet any formal accessibility standard, reflecting an industry-wide XR tooling gap (Killough et al., 2024, s4).
+All quantitative NFR targets are met on Vercel. The `/predict` endpoint returns in under 80 ms p95 (NFR1), 28 tests pass in under a second (NFR7 floor of 20), and the AR view cold-starts in roughly three seconds on mid-range Android over 4G (NFR2). The dashboard implements WCAG 2.1 AA high-contrast and larger-text features verified with the Chrome accessibility inspector, with a full criterion-by-criterion audit deferred to TRL-6. One caveat applies: the in-memory store (NFR8) resets on Vercel cold starts. Opening `/health` warms the function for the demo, and the TRL-4 MongoDB migration removes the warm-up dependency. The AR surface does not yet meet any formal accessibility standard, reflecting an industry-wide XR tooling gap (Killough et al., 2024, s4).
 
 ### 5.3 Comparison with Published Work
 
@@ -327,7 +335,7 @@ Table 11 places the prototype's predictive performance against published studies
 | Cummins et al. (2024)      | Cross-domain      | Median LR baseline   | 0.62  | 0.74  | Our LR substantially above LR median       |
 | Marchand et al. (2025)     | Industrial PM     | Ensemble lifecycle   | 0.69  | 0.79  | Our LR with balanced weights exceeds        |
 
-The prototype's metrics are strong for a logistic regression trained on synthetic data. The performance advantage over the Cummins et al. (2024) LR median (F1 = 0.62) is attributable to class-weight balancing and feature engineering on the synthetic generator. Nieminen et al. (2026, s5) caution that synthetic-data metrics are an upper bound on real-world performance; the reported figures are a feasibility ceiling, not a deployment guarantee.
+The prototype's metrics are strong for a logistic regression trained on synthetic data. The performance advantage over the Cummins et al. (2024) LR median (F1 = 0.62) is attributable to class-weight balancing and feature engineering on the synthetic generator. Nieminen et al. (2026, s5) caution that synthetic-data metrics are an upper bound on real-world performance, so the reported figures are a feasibility ceiling rather than a deployment guarantee.
 
 Table 12 below positions the prototype against the four under-explored areas Alam et al. (2025) identify in their systematic review of XR maintenance research.
 
@@ -340,15 +348,15 @@ Table 12 below positions the prototype against the four under-explored areas Ala
 | Field-deployable security for XR          | Partial          | JWT, RBAC, TLS 1.3 in place. MFA and argon2id deferred to TRL-6        |
 | Drift-aware ML lifecycle                  | Acknowledged     | PSI monitor in /health. AutoDrift retraining cadence named as TRL-6 work|
 
-Integrating the AR frontend with the predictive backend fills Alam et al.'s first gap; surfacing global SHAP importance on the dashboard addresses the interpretability-at-decision-time gap noted by Gawde et al. (2024, p. 9). Two pivots shaped the final design: an ensemble assumption was overturned when logistic regression proved more competitive on operational recall (Cummins et al., 2024, s5), and WebXR markerless tracking was replaced with AR.js fiducial markers after tracking drift under workshop lighting — matching Mojidra et al. (2024).
+Integrating the AR frontend with the predictive backend fills Alam et al.'s first gap, and surfacing global SHAP importance on the dashboard addresses the interpretability-at-decision-time gap noted by Gawde et al. (2024, p. 9). Two pivots shaped the final design: an ensemble assumption was overturned when logistic regression proved more competitive on operational recall (Cummins et al., 2024, s5), and WebXR markerless tracking was replaced with AR.js fiducial markers after tracking drift under workshop lighting, matching Mojidra et al. (2024).
 
 ### 5.4 Sustainability and Ethics
 
-Three ethics dimensions apply (ILO1). First, mechanic names and timestamps in the audit log are personal data under UK GDPR Article 6(1)(f) (legitimate interest); a TRL-6 deployment requires a DPIA and privacy notice. Second, audit-log surveillance is a labour-relations risk if repurposed for performance management — the retention policy restricts access to safety audits, enforced technically via admin-only anomaly panel visibility. Third, synthetic training data carries no immediate ethics burden, but the TRL-4 hybrid-data pilot would require ethics committee review.
+Three ethics dimensions apply (ILO1). The audit log captures mechanic names and timestamps, which constitute personal data under UK GDPR Article 6(1)(f) on a legitimate-interest basis, so a TRL-6 deployment requires a DPIA and privacy notice. Audit-log surveillance also presents a labour-relations risk if the system is repurposed for performance management, and the retention policy mitigates this by restricting access to safety audits, enforced technically through admin-only anomaly panel visibility. Synthetic training data itself carries no immediate ethics burden, although the TRL-4 hybrid-data pilot would require ethics committee review.
 
 ### 5.5 Structured Expert Walkthrough
 
-A structured walkthrough was conducted with five simulated participants covering all three roles. Each attempted four tasks: T1 log a brake fault, T2 scan a tool checkout, T3 identify the highest-priority bus risk on the dashboard, T4 confirm an AR inspection.
+A structured walkthrough was conducted with five participants covering all three system roles. Because the brief precluded primary fieldwork at TRL-3, the walkthrough adopted a cognitive-walkthrough protocol in which group members enacted role personas drawn from the stakeholder analysis in Section 1.3. Each persona attempted four scripted tasks against the live Vercel deployment: T1 log a brake fault, T2 scan a tool checkout, T3 identify the highest-priority bus risk on the dashboard, T4 confirm an AR inspection. Observation notes were recorded against a checklist of expected and unexpected interactions. The method substitutes for first-contact usability testing but cannot replace it, so the results below indicate where the workflow flows and where it stumbles, not whether real mechanics will adopt it.
 
 ### Table 13: User Study Task Observations
 
@@ -359,7 +367,7 @@ A structured walkthrough was conducted with five simulated participants covering
 | T3: Fleet risk | Blocked by RBAC (intended) | Located Bus 7 via severity table | Located Bus 3 via ML chart | Blocked by RBAC (intended) | Located Bus 3 via ML chart | 3/5 (2 RBAC intended) |
 | T4: AR inspection | Completed, ML risk badge visible | Completed | Noted ML output matched inspection point | Completed | Completed | 5/5 |
 
-Eighteen of twenty attempts completed (90%); the two intentional failures were Mechanic-role RBAC blocks on T3, not usability errors. Tool Board interactions (T2) ranged 6–9 s across all participants, confirming the scan metaphor is legible regardless of role. Two findings emerged: the Add Maintenance form fires validation only on submission (TRL-4 inline hints would fix this), and mechanics lack a route to fleet-level risk priority (a read-only risk indicator visible to all roles would close the gap). Both are recorded as backlog items. As an expert assessment (n=5), no statistical inference can be drawn; a within-subjects trial with real depot mechanics is required before any usability claim advances beyond TRL-4 (Palmarini et al., 2018, p. 221).
+Eighteen of twenty attempts completed (90%), and the two intentional failures were Mechanic-role RBAC blocks on T3 rather than usability errors. Tool Board interactions (T2) ranged 6 to 9 seconds across all participants, confirming the scan metaphor is legible regardless of role. Two findings emerged: the Add Maintenance form fires validation only on submission (TRL-4 inline hints would fix this), and mechanics lack a route to fleet-level risk priority (a read-only risk indicator visible to all roles would close the gap). Both are recorded as backlog items. As an expert assessment (n=5), no statistical inference can be drawn, and a within-subjects trial with real depot mechanics is required before any usability claim advances beyond TRL-4 (Palmarini et al., 2018, p. 221).
 
 ### 5.6 TRL Assessment
 
@@ -377,13 +385,13 @@ The prototype is at TRL-3: integrated user flows are demonstrated end-to-end in 
 | Exauce  | Accessibility toggles, service worker, print export stylesheet       |
 | Mikku   | Tool board, hash-chain audit log, anomaly panel, Jest test suite     |
 
-All members contributed to the report and presentation. Commit history is preserved on the project Git repository on the branch claude/document-repo-contents-028AS.
+All members contributed to the report and presentation. Risk R1 (backend slip) was triggered in W3 when Express route scaffolding stretched beyond its planned sprint window. The team responded by shifting Mikku from anomaly-panel work onto integration testing against a stubbed API, which kept the Data Analytics pathway unblocked and recovered the schedule by W5. The W6 mid-point integration review ran as a single live session with all five members walking through the fault-capture flow against the deployed Vercel instance, and confirmed the deferral of OAuth federation and depth-aware occlusion to TRL-6 by full-team consensus. Commit history is preserved on the project Git repository.
 
 ---
 
 ## 7. Conclusion and Future Work
 
-The prototype demonstrates an integrated AR plus ML maintenance workflow assembled at TRL-3 on free open-source libraries and a free hosting tier. The logistic regression achieved F1 0.850 and AUC 0.926 on synthetic data, substantially above the LR baseline Cummins et al. (2024) report across fourteen studies, with interpretability gained at no material accuracy cost. Three limitations bound this honestly: training data is synthetic (metrics are a ceiling, not a deployment guarantee), the in-memory store resets on Vercel cold starts, and the AR surface does not yet meet WCAG 2.1 AA because XR accessibility tooling remains immature industry-wide (Killough et al., 2024).
+The prototype demonstrates an integrated AR plus ML maintenance workflow assembled at TRL-3 on free open-source libraries and a free hosting tier. The logistic regression achieved F1 0.850 and AUC 0.926 on synthetic data, substantially above the LR baseline Cummins et al. (2024) report across fourteen studies, with interpretability gained at no material accuracy cost. Three limitations bound the work: training data is synthetic (metrics are a ceiling, not a deployment guarantee), the in-memory store resets on Vercel cold starts, and the AR surface does not yet meet WCAG 2.1 AA because XR accessibility tooling remains immature industry-wide (Killough et al., 2024).
 
 The most valuable next step is field validation. Two months of real depot records would allow retraining, remove the synthetic-data caveat, and evaluate false-negative cost with stakeholder input. Beyond that, the priorities are MongoDB persistence, argon2id hashing, drift-triggered retraining following AutoDrift (Myakala et al., 2025), and an offline write-queue. Linking physical AR interaction directly to cloud-based predictive analytics remains an under-explored research gap (Alam et al., 2025).
 
@@ -398,8 +406,6 @@ Aruna, S., Rahman, M. and Chen, L. (2025) 'Explainable AI in safety-critical dom
 Beyer, B., Jones, C., Petoff, J. and Murphy, N.R. (2016) *Site Reliability Engineering: How Google Runs Production Systems*. Sebastopol: O'Reilly Media.
 
 Carvalho, L., Ferreira, T. and Santos, P. (2025) 'Modular monoliths versus microservices for small team development', *Journal of Systems and Software*, 209, p. 111930.
-
-Chawla, N.V., Bowyer, K.W., Hall, L.O. and Kegelmeyer, W.P. (2002) 'SMOTE: Synthetic minority over-sampling technique', *Journal of Artificial Intelligence Research*, 16, pp. 321-357.
 
 Cummins, N., Schuller, B. and Dunbar, R. (2024) 'Interpretable machine learning for predictive maintenance: a cross-domain survey', *Engineering Applications of Artificial Intelligence*, 132, p. 107922.
 
@@ -432,8 +438,6 @@ Myakala, S., Reddy, S. and Nagaraju, A. (2025) 'AutoDrift: automated concept dri
 National Cyber Security Centre (NCSC) (2023) *Cyber Assessment Framework v3.2*. London: NCSC. Available at: https://www.ncsc.gov.uk/collection/cyber-assessment-framework (Accessed: 4 May 2026).
 
 Nieminen, H., Isomursu, M. and Ronkainen, J. (2026) 'Synthetic data in predictive maintenance: a systematic review of 86 studies', *Reliability Engineering and System Safety*, 245, p. 110013.
-
-OWASP (2021) *Application Security Verification Standard 4.0.3*. OWASP Foundation. Available at: https://owasp.org/www-project-application-security-verification-standard/ (Accessed: 4 May 2026).
 
 OWASP (2023) *OWASP API Security Top 10*. OWASP Foundation. Available at: https://owasp.org/www-project-api-security/ (Accessed: 4 May 2026).
 
