@@ -131,52 +131,71 @@ function confetti() {
 /* ============================================================
  *  HOME
  * ============================================================ */
+const ICONS = {
+  cards:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="11" rx="2"/><path d="M7 3h14v11"/></svg>`,
+  bigO:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M9 15l6-6"/></svg>`,
+  sort:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg>`,
+  bst:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><circle cx="6" cy="13" r="2.2"/><circle cx="18" cy="13" r="2.2"/><circle cx="9" cy="20" r="2"/><circle cx="15" cy="20" r="2"/><path d="M10.4 6.6L7.2 11.4M13.6 6.6l3.2 4.8M6.8 14.8L8.5 18.4M17.2 14.8L15.5 18.4"/></svg>`,
+  graph:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="12" cy="14" r="2.2"/><circle cx="6" cy="20" r="2"/><circle cx="18" cy="20" r="2"/><path d="M7.5 7.2L11 13M16.5 7.2L13 13M11 15l-3.5 3.4M13 15l3.5 3.4"/></svg>`,
+  books:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16a2 2 0 0 0 2 2h14V4H6a2 2 0 0 0-2 2z"/><path d="M8 7h9M8 11h9M8 15h6"/></svg>`,
+  clock:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>`,
+  arrow:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`,
+  target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>`,
+  flame:  `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4-1 3 1 4 2 4 0-3-2-5 0-9z"/></svg>`
+};
+
 SCREENS.home = function(root) {
   const days = daysUntil();
-  const daysLabel = days >= 0 ? `${days} days to exam` : `Exam was ${-days} days ago`;
 
-  root.appendChild(el("section", { class: "hero" },
+  const hero = el("section", { class: "hero" },
     el("h2", {}, "Smash the DSA exam"),
-    el("p", {}, EXAM_INFO.date + " · " + EXAM_INFO.time + " · " + EXAM_INFO.location.split(",")[0]),
-    el("span", { class: "countdown" }, "⏰ " + daysLabel),
-    " ",
-    STATE.streak > 0 ? el("span", { class: "streak" }, "🔥 " + STATE.streak + "-day streak") : null
-  ));
+    el("p", {}, EXAM_INFO.date + " · " + EXAM_INFO.time),
+    el("div", { class: "countdown-big" },
+      el("span", { class: "num" }, days >= 0 ? String(days) : "0"),
+      el("span", { class: "unit" }, days === 1 ? "day to go" : days >= 0 ? "days to go" : "exam done")
+    ),
+    el("div", { style: { marginTop: "8px" } },
+      el("span", { class: "countdown" }, EXAM_INFO.location.split(",")[0]),
+      STATE.streak > 0 ? " " : null,
+      STATE.streak > 0 ? el("span", { class: "streak", html: ICONS.flame + " " + STATE.streak + " day streak" }) : null
+    )
+  );
+  root.appendChild(hero);
 
   root.appendChild(el("button", { class: "mock-cta", onclick: () => go("mock") },
-    el("div", { class: "ico" }, "⏱"),
+    el("div", { class: "ico", html: ICONS.clock }),
     el("div", {},
       el("div", { class: "ttl" }, "Take the full mock exam"),
       el("div", { class: "sub" }, "2 hours · 5 questions · auto-marked")
     ),
-    el("div", { class: "arr" }, "→")
+    el("div", { class: "arr", html: ICONS.arrow })
   ));
 
-  const qWrap = el("section", { class: "card" },
-    el("h2", {}, "🎯 The exam · 5 questions"),
-    el("p", { class: "muted", style: { marginBottom: "8px" } }, EXAM_INFO.format)
-  );
-  EXAM_INFO.questions.forEach(q => {
-    qWrap.appendChild(el("div", { style: { padding: "9px 0", borderTop: "1px dashed var(--bg-3)" } },
+  root.appendChild(el("div", { class: "section-label" }, "Quick practice"));
+
+  root.appendChild(el("section", { class: "quick-grid" },
+    quickTile(ICONS.cards,  "Concept cards", "Q1 · swipe to study",    "flashcards", ""),
+    quickTile(ICONS.bigO,   "Big-O quiz",    "Q2 · complexity",         "bigO",       "blue"),
+    quickTile(ICONS.sort,   "Sort visualiser","Q3 · step-by-step",      "sort",       "orange"),
+    quickTile(ICONS.bst,    "BST builder",   "Q4 · animated tree",      "bst",        "purple"),
+    quickTile(ICONS.graph,  "Graph traversal","Q5 · queue + stack",     "graph",      "teal"),
+    quickTile(ICONS.books,  "Lectures",      "All 12 topics",           "lectures",   "red")
+  ));
+
+  root.appendChild(el("div", { class: "section-label" }, "The exam · 5 questions"));
+  const qWrap = el("section", { class: "card" });
+  EXAM_INFO.questions.forEach((q, idx) => {
+    qWrap.appendChild(el("div", { style: { padding: "10px 0", borderTop: idx === 0 ? "none" : ".5px solid var(--separator-soft)" } },
       el("div", { class: "row-between" },
-        el("strong", {}, "Q" + q.n),
+        el("strong", { style: { letterSpacing: "-0.01em" } }, "Q" + q.n),
         q.note ? el("span", { class: "tag-pill amber" }, q.note) : el("span", { class: "tag-pill" }, q.topic)
       ),
-      el("p", { style: { fontSize: "13px", margin: "4px 0 0", color: "var(--text-dim)" } }, q.desc)
+      el("p", { style: { fontSize: "13px", margin: "4px 0 0" } }, q.desc)
     ));
   });
   root.appendChild(qWrap);
 
-  root.appendChild(el("section", { class: "quick-grid" },
-    quickTile("📝", "Concept cards", "Q1 · swipe to study", "flashcards"),
-    quickTile("🔬", "Big-O quiz", "Q2 · complexity", "bigO"),
-    quickTile("🔢", "Sort visualiser", "Q3 · step-by-step", "sort"),
-    quickTile("🌳", "BST builder", "Q4 · animated tree", "bst"),
-    quickTile("🕸️", "Graph traversal", "Q5 · queue + stack", "graph"),
-    quickTile("📚", "Lectures", "All 12 topics", "lectures")
-  ));
-
-  const grid = el("section", {}, el("h2", { style: { fontSize: "16px", margin: "14px 4px 8px" } }, "📚 Lectures 1 – 12"));
+  root.appendChild(el("div", { class: "section-label" }, "Lectures 1 – 12"));
   const gridWrap = el("div", { class: "lect-grid" });
   LECTURES.forEach(l => {
     gridWrap.appendChild(el("button", { class: "lect-tile" + (l.examQ ? " exam" : ""), onclick: () => go("lecture", l.n) },
@@ -185,25 +204,31 @@ SCREENS.home = function(root) {
       el("span", { class: "tag" }, l.tag)
     ));
   });
-  grid.appendChild(gridWrap);
-  root.appendChild(grid);
+  root.appendChild(gridWrap);
 
   const best = STORE.get("mockBest", null);
   if (best) {
-    root.appendChild(el("section", { class: "card", style: { marginTop: "14px" } },
-      el("h3", {}, "Best mock score"),
-      el("p", { html: `<strong style="font-size:18px">${best.score} / 100</strong> · ${best.date} · finished in ${best.timeStr}` })
+    root.appendChild(el("div", { class: "section-label" }, "Best mock score"));
+    root.appendChild(el("section", { class: "card" },
+      el("div", { class: "stat-grid" },
+        el("div", { class: "stat" },
+          el("div", { class: "val", style: { color: "var(--accent)" } }, best.score + " / 100"),
+          el("div", { class: "lbl" }, "Score")
+        ),
+        el("div", { class: "stat" },
+          el("div", { class: "val" }, best.timeStr),
+          el("div", { class: "lbl" }, "Time · " + best.date)
+        )
+      )
     ));
   }
 
   root.appendChild(el("div", { class: "spacer" }));
-  root.appendChild(el("p", { class: "muted", style: { textAlign: "center" } },
-    "Built for Dr Cetinkaya's COMP5066 · Tap any tile to practise"));
 };
 
-function quickTile(icon, ttl, sub, route) {
+function quickTile(iconHTML, ttl, sub, route, colour) {
   return el("button", { class: "quick-tile", onclick: () => go(route) },
-    el("div", { class: "icon" }, icon),
+    el("div", { class: "icon-wrap " + (colour || ""), html: iconHTML }),
     el("div", { class: "ttl" }, ttl),
     el("div", { class: "sub" }, sub));
 }

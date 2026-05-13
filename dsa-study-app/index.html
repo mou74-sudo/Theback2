@@ -3,36 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#000000" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="DSA Study" />
-  <title>DSA Study — COMP5066 Revision</title>
+  <title>DSA Study — COMP5066</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2310b981'/%3E%3Ctext x='50%25' y='58%25' font-family='system-ui' font-size='34' font-weight='800' text-anchor='middle' fill='white'%3EDS%3C/text%3E%3C/svg%3E" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2310b981'/%3E%3Ctext x='50%25' y='60%25' font-family='system-ui' font-size='95' font-weight='800' text-anchor='middle' fill='white'%3EDS%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2330d158'/%3E%3Ctext x='50%25' y='58%25' font-family='-apple-system,system-ui' font-size='32' font-weight='800' text-anchor='middle' fill='%23052311'%3EDS%3C/text%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2330d158'/%3E%3Ctext x='50%25' y='60%25' font-family='-apple-system,system-ui' font-size='92' font-weight='800' text-anchor='middle' fill='%23052311'%3EDS%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="app-header">
-    <button class="back-btn" id="back-btn" aria-label="Back" hidden>&larr;</button>
+    <button class="back-btn" id="back-btn" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
     <div class="title-wrap">
       <h1 id="screen-title">DSA Study</h1>
       <p class="subtitle" id="screen-subtitle">COMP5066 · Exam revision</p>
     </div>
-    <button class="theme-btn" id="theme-btn" aria-label="Toggle theme">&#9788;</button>
+    <button class="theme-btn" id="theme-btn" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
   </header>
 
   <main id="app"></main>
 
   <nav class="tabbar" id="tabbar">
-    <button data-route="home" class="tab active"><span>&#9728;</span><label>Home</label></button>
-    <button data-route="flashcards" class="tab"><span>&#9873;</span><label>Cards</label></button>
-    <button data-route="bigO" class="tab"><span>O(n)</span><label>Big-O</label></button>
-    <button data-route="sort" class="tab"><span>&#8645;</span><label>Sort</label></button>
-    <button data-route="bst" class="tab"><span>&#9881;</span><label>BST</label></button>
-    <button data-route="graph" class="tab"><span>&#9901;</span><label>Graph</label></button>
-    <button data-route="mock" class="tab mock"><span>&#9201;</span><label>Mock</label></button>
+    <button data-route="home" class="tab active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v10h14V10"/></svg>
+      <label>Home</label>
+    </button>
+    <button data-route="flashcards" class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="11" rx="2"/><path d="M7 3h14v11"/></svg>
+      <label>Cards</label>
+    </button>
+    <button data-route="bigO" class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M9 15l6-6"/></svg>
+      <label>Big-O</label>
+    </button>
+    <button data-route="sort" class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg>
+      <label>Sort</label>
+    </button>
+    <button data-route="bst" class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><circle cx="6" cy="13" r="2.2"/><circle cx="18" cy="13" r="2.2"/><circle cx="9" cy="20" r="2"/><circle cx="15" cy="20" r="2"/><path d="M10.4 6.6L7.2 11.4M13.6 6.6l3.2 4.8M6.8 14.8L8.5 18.4M17.2 14.8L15.5 18.4"/></svg>
+      <label>BST</label>
+    </button>
+    <button data-route="graph" class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="12" cy="14" r="2.2"/><circle cx="6" cy="20" r="2"/><circle cx="18" cy="20" r="2"/><path d="M7.5 7.2L11 13M16.5 7.2L13 13M11 15l-3.5 3.4M13 15l3.5 3.4M8 6h8"/></svg>
+      <label>Graph</label>
+    </button>
+    <button data-route="mock" class="tab mock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6M12 5v0"/></svg>
+      <label>Mock</label>
+    </button>
   </nav>
 
   <script src="data.js"></script>
