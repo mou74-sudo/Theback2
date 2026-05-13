@@ -461,7 +461,14 @@ const GRAPH_PRESETS = [
       ["H","I"]
     ],
     start: "A",
-    directed: true
+    directed: true,
+    layout: {
+      A: [170, 40],
+      B: [80,  110], E: [260, 110],
+      C: [40,  185], D: [150, 185], F: [255, 185],
+      H: [105, 250], G: [220, 250],
+      I: [170, 295]
+    }
   },
   {
     name: "Simple undirected",
