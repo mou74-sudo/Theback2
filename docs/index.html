@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="DSA Study" />
+  <title>DSA Study — COMP5066 Revision</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2310b981'/%3E%3Ctext x='50%25' y='58%25' font-family='system-ui' font-size='34' font-weight='800' text-anchor='middle' fill='white'%3EDS%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <button class="back-btn" id="back-btn" aria-label="Back" hidden>&larr;</button>
+    <div class="title-wrap">
+      <h1 id="screen-title">DSA Study</h1>
+      <p class="subtitle" id="screen-subtitle">COMP5066 · Exam revision</p>
+    </div>
+    <button class="theme-btn" id="theme-btn" aria-label="Toggle theme">&#9788;</button>
+  </header>
+
+  <main id="app"></main>
+
+  <nav class="tabbar" id="tabbar">
+    <button data-route="home" class="tab active"><span>&#9728;</span><label>Home</label></button>
+    <button data-route="flashcards" class="tab"><span>&#9873;</span><label>Cards</label></button>
+    <button data-route="bigO" class="tab"><span>O(n)</span><label>Big-O</label></button>
+    <button data-route="sort" class="tab"><span>&#8645;</span><label>Sort</label></button>
+    <button data-route="bst" class="tab"><span>&#9881;</span><label>BST</label></button>
+    <button data-route="graph" class="tab"><span>&#9901;</span><label>Graph</label></button>
+  </nav>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
